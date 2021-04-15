@@ -188,55 +188,51 @@ public class EnvelopeFinderTest {
   @Test public void TWorldTest1()   throws
           IOException,  ContradictionException, TimeoutException {
    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  4, 5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt"  );
+    testMakeSeqOfSteps(  4, 5, 5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt"  );
   }
 
-    /**
-     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
-     *                        4x4 world, Treasure at 3,3 and 5 steps.
-     *
-     * @throws IOException            Signals that an I/O exception of some sort has occurred.
-     * @throws ContradictionException it must be included when adding clauses to a solver,
-     *                           it prevents from inserting contradictory clauses in the formula.
-     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-     *                                exceeds the timeout.
-     **/
-    @Test public void TWorldTest2()   throws
-            IOException,  ContradictionException, TimeoutException {
-        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-        testMakeSeqOfSteps(  6, 4, 3, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
-    }
+  /**
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  *                        4x4 world, Treasure at 3,3 and 5 steps.
+  *
+  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws ContradictionException it must be included when adding clauses to a solver,
+  *                           it prevents from inserting contradictory clauses in the formula.
+  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+  *                                exceeds the timeout.
+  **/
+  @Test public void TWorldTest2()   throws
+        IOException,  ContradictionException, TimeoutException {
+    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+    testMakeSeqOfSteps(  6, 4, 3, 5, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
+  }
 
-    /**
-     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
-     *                        4x4 world, Treasure at 3,3 and 5 steps.
-     *
-     * @throws IOException            Signals that an I/O exception of some sort has occurred.
-     * @throws ContradictionException it must be included when adding clauses to a solver,
-     *                           it prevents from inserting contradictory clauses in the formula.
-     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-     *                                exceeds the timeout.
-     **/
-    @Test public void TWorldTest3()   throws
-            IOException,  ContradictionException, TimeoutException {
-        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-        testMakeSeqOfSteps(  6, 4, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );    }
-
-    /**
-     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
-     *                        4x4 world, Treasure at 3,3 and 5 steps.
-     *
-     * @throws IOException            Signals that an I/O exception of some sort has occurred.
-     * @throws ContradictionException it must be included when adding clauses to a solver,
-     *                           it prevents from inserting contradictory clauses in the formula.
-     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-     *                                 exceeds the timeout.
-     **/
-    @Test public void TWorldTest4()   throws
-            IOException,  ContradictionException, TimeoutException {
-        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-        testMakeSeqOfSteps(  6, 4, 7, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );    }
-
-}
-
+  /**
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  *                        4x4 world, Treasure at 3,3 and 5 steps.
+  *
+  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws ContradictionException it must be included when adding clauses to a solver,
+  *                           it prevents from inserting contradictory clauses in the formula.
+  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+  *                                exceeds the timeout.
+  **/
+  @Test public void TWorldTest3()   throws IOException,  ContradictionException, TimeoutException {
+    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+    testMakeSeqOfSteps(  6, 4, 6, 5, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
+  }
+  /**
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  *                        4x4 world, Treasure at 3,3 and 5 steps.
+  *
+  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws ContradictionException it must be included when adding clauses to a solver,
+  *                           it prevents from inserting contradictory clauses in the formula.
+  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+  *                                 exceeds the timeout.
+  **/
+  @Test public void TWorldTest4()   throws IOException,  ContradictionException, TimeoutException {
+    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+    testMakeSeqOfSteps(  6, 4, 7, 5, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
+  }
 }
