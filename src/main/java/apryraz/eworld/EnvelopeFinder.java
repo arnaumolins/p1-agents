@@ -64,7 +64,7 @@ public class EnvelopeFinder  {
 /**
 *   Agent position in the world 
 **/
-    int agentX, agentY;
+    int agentX, agentY, envelopeFound;
 /**
 *  Dimension of the world and total size of the world (Dim^2)
 **/
@@ -77,7 +77,13 @@ public class EnvelopeFinder  {
 **/
     int EnvelopePastOffset;
     int EnvelopeFutureOffset;
-    int DetectorOffset;
+    int Detector1Offset=0;
+    int Detector2Offset=0;
+    int Detector3Offset=0;
+    int Detector4Offset=0;
+    int Detector5Offset=0;
+    int envelopeAboveOffset=0;
+    int envelopeBelowOffset=0;
     int actualLiteral;
 
 
@@ -189,7 +195,7 @@ public class EnvelopeFinder  {
           addLastFutureClausesToPastClauses();
 
           // Ask to move, and check whether it was successful
-          // Also, record if a pirate was found at that position
+          // Also, record if a envelope was found at that position
           processMoveAnswer( moveToNext( ) );
 
 
@@ -261,8 +267,8 @@ public class EnvelopeFinder  {
         if ( moveans.getComp(0).equals("movedto") ) {
           agentX = Integer.parseInt( moveans.getComp(1) );
           agentY = Integer.parseInt( moveans.getComp(2) );
-        
-          System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")" + " Pirate found : "+pirateFound );
+          envelopeFound = Integer.parseInt(moveans.getComp(3));
+          System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")" + " Envelope found : "+envelopeFound );
         }
     }
 
@@ -304,17 +310,151 @@ public class EnvelopeFinder  {
 
          // Call your function/functions to add the evidence clauses
          // to Gamma to then be able to infer new NOT possible positions
-         // This new evidences could be removed at the end of the current step,
-         // if you have saved the consequences over the "past" variables (the memory
-         // of the agent) and the past is consistent with the future in your Gamma
-         // formula
+         addDetectorEvidenceClauses(x,y,detects);
 
+    }
 
-         // CALL your functions HERE
+    /** We need to add the clauses reggarding to the evidences we get from the metal detector.
+     *
+     * @param x coordinate for the possition x
+     * @param y coordinate for the possition y
+     * @param detects it correspounds to the range detected by the agent, will be between
+     *                the ranges: 0,1,2,3.
+     */
+    private void addDetectorEvidenceClauses(int x, int y, String detects) throws ContradictionException{
+        System.out.println("Detector returned: " + detects);
+        System.out.println("Inserting detector evidence");
+        switch (detects){
+            case "1":
+                addClause(x,y,+1,Detector1Offset);
+                for (int i = 1; i <= WorldDim; i++) {
+                    for (int j = 1; j <= WorldDim; j++) {
+                        if(!(x==i && y==j)){
+                            addClause(i,j,-1,EnvelopeFutureOffset);
+                        }
+                    }
+                }
+                System.out.println("Treasure found!");
+                break;
+            case "2":
+                addClause(x,y,+1,Detector2Offset);
+                for (int i = 1; i <= WorldDim; i++) {
+                    for (int j = 1; j <= WorldDim; j++) {
+                        if(pitagor(Math.abs(i-x),Math.abs(j-y)) != 1){
+                            addClause(i,j,-1,EnvelopeFutureOffset);
+                        }
+                    }
+                }
+                break;
+            case "3":
+                addClause(x,y,+1,Detector3Offset);
+                for (int i = 1; i <= WorldDim; i++) {
+                    for (int j = 1; j <= WorldDim; j++) {
+                        if(pitagor(Math.abs(i-x),Math.abs(j-y)) != 2){
+                            addClause(i,j,-1,EnvelopeFutureOffset);
+                        }
+                    }
+                }
+                break;
+            case "4":
+                addClause(x,y,+1,Detector4Offset);
+                for (int i = 1; i <= WorldDim; i++) {
+                    for (int j = 1; j <= WorldDim; j++) {
+                        if(pitagor(Math.abs(i-x),Math.abs(j-y)) != 2){
+                            addClause(i,j,-1,EnvelopeFutureOffset);
+                        }
+                    }
+                }
+                break;
+            case "5":
+                addClause(x,y,+1,Detector5Offset);
+                for (int i = 1; i <= WorldDim; i++) {
+                    for (int j = 1; j <= WorldDim; j++) {
+                        if(pitagor(Math.abs(i-x),Math.abs(j-y)) != 2){
+                            addClause(i,j,-1,EnvelopeFutureOffset);
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
+    public static double pitagor (int x , int y){
+        double c = Math.sqrt((x*x)+(y*y));
+        return Math.floor(c);
+    }
+
+    /**
+     * It models the information using solver's vector and adds it to the solver.
+     *
+     * @param x coordinate of the possition x
+     * @param y coordinate for the possition y
+     * @param sign it indicates the sign of an specific literal, may be -1 or 1
+     * @param offset it is the offset that corresponds to the subset of variables
+     *               that contains that literal.
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void addClause(int x, int y, int sign, int offset) throws ContradictionException {
+        int lc;
+        VecInt evidence = new VecInt();
+        if(sign == -1){
+            lc = -(coordToLineal(x,y,offset));
+        }else{
+            lc = coordToLineal(x,y,offset);
+        }
+        evidence.insertFirst(lc);
+        solver.addClause(evidence);
     }
 
 
-    
+
+
+    /**
+     * Send to the envelope (using the environment object) the question:
+     * "Is the treasure up or down of (agentX,agentY)  ?"
+     *
+     * @return return the answer given by the envelope
+     **/
+    public AMessage IsTreasureUpOrDown() {
+        AMessage msg, ans;
+
+        msg = new AMessage("treasureup", (new Integer(agentX)).toString(),
+                (new Integer(agentY)).toString(), "");
+        ans = EnvAgent.acceptMessage(msg);
+        System.out.println("FINDER => checking treasure up of : (" + agentX + "," + agentY + ")");
+        return ans;
+    }
+
+    /**
+     * We need to add the clauses reggarding to the evidences we get from the envelope.
+     *
+     * @param ans message obtained from the query to the envelope.
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+     */
+    public void processEnvelopeAnswer(AMessage ans) throws ContradictionException{
+        int x = Integer.parseInt(ans.getComp(1));
+        int y = Integer.parseInt(ans.getComp(2));
+        String isup = ans.getComp(0);
+
+        if(isup.equals("yes")){
+            for (int i = 1; i <= WorldDim; i++) {
+                for (int j = y; j > 0; j--) {
+                    addClause(i,j, -1, EnvelopeFutureOffset);
+                }
+            }
+        }else{
+            for (int i = 1; i <= WorldDim; i++) {
+                for (int j = y+1; j <= WorldDim; j++) {
+                    addClause(i,j,-1,EnvelopeFutureOffset);
+                }
+            }
+        }
+    }
+
+
+
 
     /**
     *  This function should add all the clauses stored in the list
@@ -322,12 +462,14 @@ public class EnvelopeFinder  {
     *   Use the function addClause( VecInt ) to add each clause to the solver
     *
     **/
-    public void addLastFutureClausesToPastClauses() throws  IOException,
-            ContradictionException, TimeoutException
-    {
-
-
+    public void addLastFutureClausesToPastClauses() throws  IOException, ContradictionException, TimeoutException {
+        if(futureToPast != null){
+            for(VecInt v: futureToPast){
+                solver.addClause(v);
+            }
+        }
     }
+
 
     /**
     * This function should check, using the future variables related
@@ -344,24 +486,25 @@ public class EnvelopeFinder  {
     public void  performInferenceQuestions() throws  IOException,
             ContradictionException, TimeoutException
     {
-       // EXAMPLE code to check this for position (2,3):
-       // Get variable number for position 2,3 in past variables
-        int linealIndex = coordToLineal(2, 3, EnvelopeFutureOffset);
-       // Get the same variable, but in the past subset
-        int linealIndexPast = coordToLineal(2, 3, EnvelopePastOffset);
+        futureToPast = new ArrayList<>();
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = 1; j <= WorldDim; j++) {
+                // Get variable number for position 2,3 in past variables
+                int linealIndex = coordToLineal(2, 3, EnvelopeFutureOffset);
+                // Get the same variable, but in the past subset
+                int linealIndexPast = coordToLineal(2, 3, EnvelopePastOffset);
 
-        VecInt variablePositive = new VecInt();
-        variablePositive.insertFirst(linealIndex);
+                VecInt variablePositive = new VecInt();
+                variablePositive.insertFirst(linealIndex);
 
-        // Check if Gamma + variablePositive is unsatisfiable:
-        // This is only AN EXAMPLE for a specific position: (2,3)
-        if (!(solver.isSatisfiable(variablePositive))) {
-              // Add conclusion to list, but rewritten with respect to "past" variables
-              VecInt concPast = new VecInt();
-              concPast.insertFirst(-(linealIndexPast));
-
-              futureToPast.add(concPast);
-              efstate.set( 2 , 3 , "X" );
+                // Check if Gamma + variablePositive is unsatisfiable:
+                // This is only AN EXAMPLE for a specific position: (2,3)
+                if (!(solver.isSatisfiable(variablePositive))) {
+                    // Add conclusion to list, but rewritten with respect to "past" variables
+                    VecInt concPast = new VecInt();
+                    concPast.insertFirst(-(linealIndexPast));
+                    futureToPast.add(concPast);
+                    efstate.set( 2 , 3 , "X" );
         }
 
     }
@@ -379,7 +522,7 @@ public class EnvelopeFinder  {
 
         // You must set this variable to the total number of boolean variables
         // in your formula Gamma
-        // totalNumVariables =  ??
+        totalNumVariables = WorldLinealDim*4 + WorldLinealDim*2 + WorldLinealDim*2;
         solver = SolverFactory.newDefault();
         solver.setTimeout(3600);
         solver.newVar(totalNumVariables);
@@ -389,17 +532,234 @@ public class EnvelopeFinder  {
 
         // call here functions to add the differen sets of clauses
         // of Gamma to the solver object
-        //
-        // EXEMPLE of building a clause:
-        // VecInt Clause = new VecInt();
-        //  insert a literal into the clause:
-        //    Clause.insertFirst(actualLiteral);
-        //
-        //  Insert the clause into the formula:
-        //  solver.addClause(Clause);
+        pastState(); //Treasure state t-1
+        futureState(); //Treasure state t+1
+        pastTofutureState(); //Treasure state t-1 to Treasure state t+1
+
+        detectorClauses(); //Implications from the metal sensor
+        envelopeClauses();   //envelope implications
+
+        notInInitialPos(); //Implicates that the treasure is not in the initial position
 
 
         return solver;
+    }
+
+    /**
+     * We need to add all the clauses for the possible implications a envelope may have.
+     *
+     *  @throws ContradictionException it must be included when adding clauses to a solver,
+     *      *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void envelopeClauses() throws ContradictionException {
+        for (int k = 0; k < 2; k++) {
+            for (int i = 1; i <= WorldDim; i++) {
+                for (int j = 1; j <= WorldDim; j++) {
+                    if (k == 0) {
+                        if (envelopeAboveOffset == 0) {
+                            envelopeAboveOffset = actualLiteral;
+                        }
+                        envelopeAboveImpl(i, j);
+                    } else {
+                        if (envelopeBelowOffset == 0) {
+                            envelopeBelowOffset = actualLiteral;
+                        }
+                        envelopeBelowImpl(i, j);
+                    }
+                    actualLiteral++;
+                }
+            }
+        }
+    }
+
+    /**
+     * We need to add all the clauses for the possible implications the detector may have
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void detectorClauses() throws ContradictionException {
+        for (int k = 1; k < 5; k++) { //Possible values of our detector
+            for (int i = 1; i <= WorldDim; i++) {
+                for (int j = 1; j <= WorldDim; j++) {
+                    switch (k){
+                        case 1:
+                            if(Detector1Offset == 0){ Detector1Offset = actualLiteral;}
+                            detectorImplications(i,j,0,Detector1Offset);
+                            break;
+                        case 2:
+                            if(Detector2Offset == 0){ Detector2Offset = actualLiteral;}
+                            detectorImplications(i,j,1,Detector2Offset);
+                            break;
+                        case 3:
+                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
+                            detectorImplications(i,j,2,Detector3Offset);
+                            break;
+                        case 4:
+                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
+                            detectorImplications(i,j,3,Detector3Offset);
+                            break;
+                        case 5:
+                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
+                            detectorImplications(i,j,4,Detector3Offset);
+                            break;
+                    }
+                    actualLiteral++;
+                }
+            }
+        }
+    }
+
+    /**Adds the implications between detector cases 1,2,3 and the locations where we are sure
+     * the treasure can not be.
+     *
+     * @param x detector x coord
+     * @param y detector y coord
+     * @param range it specifies the range  that the detector returns
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void detectorImplications(int x, int y, int range, int offset) throws ContradictionException {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = 1; j <= WorldDim; j++) {
+                if(Math.abs(i-x)==range || Math.abs(j-y)==range){}
+                else{
+                    VecInt implication = new VecInt();
+                    implication.insertFirst(-(coordToLineal(x,y,offset)));
+                    implication.insertFirst(-(coordToLineal(i,j,TreasureFutureOffset)));
+                    solver.addClause(implication);
+                }
+            }
+        }
+    }
+    /**
+     *Case0 is a bit different from the other ranges implications because the others just look at a certain distance
+     * from the actual coord while case0 says; the treasure it's beyond Math.abs(i,j-x,y)>=3.
+     *
+     * @param x detector x coord
+     * @param y detector y coord
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void detectorImplicationsCase0(int x, int y, int offset) throws ContradictionException {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = 1; j <= WorldDim; j++) {
+                if(Math.abs(i-x)>=3 || Math.abs(j-y)>=3){}
+                else{
+                    VecInt implication = new VecInt();
+                    implication.insertFirst(-(coordToLineal(x,y,offset)));
+                    implication.insertFirst(-(coordToLineal(i,j,EnvelopeFutureOffset)));
+                    solver.addClause(implication);
+                }
+            }
+        }
+    }
+
+    /**Adds the implications between envelope saying treasure is above and locations
+     * were the trasure cannot be located.
+     *
+     * @param x detector x coord
+     * @param y detector y coord
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void envelopeAboveImpl(int x, int y) throws ContradictionException {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = y; j >0; j--) {
+                VecInt implication = new VecInt();
+                implication.insertFirst(-(coordToLineal(x, y, envelopeAboveOffset)));
+                implication.insertFirst(-(coordToLineal(i, j, TreasureFutureOffset)));
+                solver.addClause(implication);
+            }
+        }
+    }
+
+    /**Adds the implications between detector cases 1,2,3 and the locations where we are sure
+     * the treasure can not be.
+     *
+     * @param x detector x coord
+     * @param y detector y coord
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *      * it prevents from inserting contradictory clauses in the formula.
+     */
+    private void envelopeBelowImpl(int x, int y) throws ContradictionException {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = y; j <= WorldDim; j++) {
+                VecInt implication = new VecInt();
+                implication.insertFirst(-(coordToLineal(x, y, envelopeBelowOffset)));
+                implication.insertFirst(-(coordToLineal(i, j, EnvelopeFutureOffset)));
+                solver.addClause(implication);
+            }
+        }
+    }
+
+    /**
+     *It add a clause to the solver that implies that the envelope must be
+     * in a position considering past information.
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+     *
+     **/
+    private void pastState() throws ContradictionException {
+        // VecInt its the vector that use the solver for primitive integers.
+        VecInt pastInf = new VecInt();
+        EnvelopeFutureOffset = actualLiteral;
+        for (int i = 0; i < WorldLinealDim; i++) {
+            pastInf.insertFirst(actualLiteral);
+            actualLiteral+=1;
+        }
+        solver.addClause(pastInf);
+    }
+
+    /**
+     *It add a clause to the solver that implies that the envelope must be
+     * in a position considering future information.
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+     *
+     **/
+    private void futureState() throws ContradictionException {
+        VecInt futureInf = new VecInt();
+        EnvelopeFutureOffset = actualLiteral;
+        for (int i = 0; i < WorldLinealDim; i++) {
+            futureInf.insertFirst(actualLiteral);
+            actualLiteral+=1;
+        }
+        solver.addClause(futureInf);
+    }
+
+    /**Adds the clauses which say that if we have concluded that the Treasure was not in an specific
+     * location, we have to keep these conclusions and those will still be true in the future
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+     */
+
+    private void pastTofutureState() throws  ContradictionException{
+        for (int i = 0; i < WorldLinealDim ; i++) {
+            VecInt clause = new VecInt();
+            clause.insertFirst(i+1);
+            clause.insertFirst(-(EnvelopeFutureOffset+i));
+            solver.addClause(clause);
+        }
+    }
+
+    /**Adds the clauses which say that the Treasure can't be found at (1,1) position.
+     * We need to add one clause for the future and one for the past.
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     * it prevents from inserting contradictory clauses in the formula.
+             */
+    private void notInInitialPos() throws ContradictionException{
+        VecInt clause = new VecInt();
+        clause.insertFirst(-EnvelopeFutureOffset);
+        solver.addClause(clause);
+        clause.clear();
+        clause.insertFirst(-EnvelopePastOffset);
+        solver.addClause(clause);
     }
 
 
@@ -430,8 +790,7 @@ public class EnvelopeFinder  {
      *        lineal belongs to
      * @return array with x and y coordinates
     **/
-    public int[] linealToCoord(int lineal, int offset)
-    {
+    public int[] linealToCoord(int lineal, int offset){
         lineal = lineal - offset + 1;
         int[] coords = new int[2];
         coords[1] = ((lineal-1) % WorldDim) + 1;
