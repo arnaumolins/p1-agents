@@ -1,0 +1,167 @@
+
+
+package apryraz.eworld;
+
+import java.util.ArrayList;
+
+
+
+
+
+public class EnvelopeWorldEnv {
+/**
+   world dimension
+
+**/
+  int  WorldDim;
+
+
+/**
+*  Class constructor
+*
+* @param dim dimension of the world
+* @param envelopeFile File with list of envelopes locations
+**/
+  public EnvelopeWorldEnv( int dim, String envelopeFile ) {
+
+    WorldDim = dim;
+    loadEnvelopeLocations(envelopeFile);
+  }
+
+    /**
+     * Class constructor
+     *
+     * @param dim         dimension of the world
+     * @param tx          X position of Treasure
+     * @param ty          Y position of Treasure
+     * @param piratesFile File with list of pirates locations<
+     **/
+    public TreasureWorldEnv(int dim, int tx, int ty, String piratesFile) {
+
+        TreasureX = tx;
+        TreasureY = ty;
+        WorldDim = dim;
+        loadPiratesLocations(piratesFile);
+    }
+
+/**
+*   Load the list of pirates locations
+*  
+*    @param: name of the file that should contain a
+*            set of envelope locations in a single line.
+**/
+  public void loadEnvelopeLocations( String envelopeFile ) {
+      try {
+          File myObj = new File(piratesFile);
+          Scanner myReader = new Scanner(myObj);
+          while (myReader.hasNextLine()) {
+              String data = myReader.nextLine();
+              String[] pirates = data.split(" ");
+              Collections.addAll(pirateLoc,pirates);
+          }
+          myReader.close();
+      } catch (FileNotFoundException e) {
+          System.out.println("Error opening Pirates file");
+          e.printStackTrace();
+      }
+  }
+
+
+/**
+* Process a message received by the EFinder agent,
+* by returning an appropriate answer
+* It should answer to moveto and detectsat messages
+*
+* @param   msg message sent by the Agent
+*
+* @return  a msg with the answer to return to the agent
+**/
+   public AMessage acceptMessage( AMessage msg ) {
+       AMessage ans = new AMessage("voidmsg", "", "", "" );
+
+         msg.showMessage();
+       if ( msg.getComp(0).equals("moveto") ) {
+           int nx = Integer.parseInt( msg.getComp(1) );
+           int ny = Integer.parseInt( msg.getComp(2) );
+           
+           if (withinLimits(nx,ny))
+           {
+             
+             
+             ans = new AMessage("movedto",msg.getComp(1),msg.getComp(2)  );
+           }
+           else
+             ans = new AMessage("notmovedto",msg.getComp(1),msg.getComp(2), "" );
+
+       } else {
+           if(msg.getComp(0).equals("detectsat")){
+               int nx = Integer.parseInt(msg.getComp(1));
+               int ny = Integer.parseInt(msg.getComp(2));
+               String detectorRange = metalSensorReading(nx,ny);
+               ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
+           }
+           if(msg.getComp(0).equals("treasureup")){
+               int ny = Integer.parseInt(msg.getComp(2));
+               String isup = IsTreasureUp(ny);
+               ans = new AMessage(isup, msg.getComp(1), msg.getComp(2),"");
+           }
+         }
+       return ans;
+
+   }
+
+    /**
+     * Check if there is a pirate in position (x,y)
+     *
+     * @param x x coordinate of agent position
+     * @param y y coordinate of agent position
+     * @return 1  if (x,y) contains a pirate, 0 otherwise
+     **/
+    public int isPirateInMyCell(int x, int y) {
+        String coord = x + "," + y;
+
+        for (String p: pirateLoc) {
+            if(p.equals(coord)){return 1;}
+        }
+        return 0;
+    }
+
+
+ /**
+  * Check if position x,y is within the limits of the
+  * WorldDim x WorldDim   world
+  *
+  * @param x  x coordinate of agent position
+  * @param y  y coordinate of agent position
+  *
+  * @return true if (x,y) is within the limits of the world
+  **/
+   public boolean withinLimits( int x, int y ) {
+
+    return ( x >= 1 && x <= WorldDim && y >= 1 && y <= WorldDim);
+  }
+
+    private String IsTreasureUp(int y){
+        if(TreasureY > y){
+            return "yes";
+        }
+        return  "no";
+    }
+
+    private String metalSensorReading(int x, int y){
+        if(x == TreasureX && y == TreasureY){
+            return "1";
+        }else if(pitagor(Math.abs(TreasureX-x),Math.abs(TreasureY-y)) == 1){
+            return "2";
+        }else if(pitagor(Math.abs(TreasureX-x),Math.abs(TreasureY-y)) == 2){
+            return "3";
+        }else{
+            return "0";
+        }
+    }
+    public static double pitagor (int x , int y){
+        double c = Math.sqrt((x*x)+(y*y));
+        return Math.floor(c);
+    }
+ 
+}
