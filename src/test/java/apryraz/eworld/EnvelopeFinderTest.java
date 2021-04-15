@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import static java.lang.System.exit;
 
+import org.sat4j.core.VecInt;
 import org.sat4j.specs.*;
 import org.sat4j.minisat.*;
 import org.sat4j.reader.*;
@@ -38,7 +39,8 @@ public class EnvelopeFinderTest {
                                            IOException,  ContradictionException, TimeoutException {
     // Check (assert) whether the resulting state is equal to
     //  the targetState after performing action runNextStep with bAgent
-
+      eAgent.runNextStep();
+      Assert.assertTrue(targetState.equals(eAgent.getState()));
   }
 
 
@@ -68,14 +70,14 @@ public class EnvelopeFinderTest {
 /**
 *  Load a sequence of states from a file, and return the list
 *
-*  @param WDim        dimension of the world
+*  @param wDim        dimension of the world
 *  @param numStates   num of states to read from the file
 *  @param statesFile file name with sequence of target states, that should
 *                      be the resulting states after each movement in fileSteps
 *
 *  @return returns an ArrayList of TFState with the resulting list of states
 **/
-  ArrayList<TFState> loadListOfTargetStates( int wDim, int numStates, String statesFile ) {
+  ArrayList<EFState> loadListOfTargetStates( int wDim, int numStates, String statesFile ) {
 
      ArrayList<EFState> listOfStates = new ArrayList<EFState>(numStates);
 
@@ -114,18 +116,18 @@ public class EnvelopeFinderTest {
   *   @param fileEnvelopes
   *
   **/
-  public void testMakeSeqOfSteps( int wDim,
+  public void testMakeSeqOfSteps( int wDim, int tX, int tY,
                                   int numSteps, String fileSteps, String fileStates,
                                   String fileEnvelopes  ) 
        throws   IOException,  ContradictionException, TimeoutException {
       // You should make TreasureFinder and TreasureWorldEnv objects to  test.
       // Then load sequence of target states, load sequence of steps into the eAgent
       // and then test the sequence calling testMakeSimpleStep once for each step.
-     EnvelopeFinder eAgent  ;
+     EnvelopeFinder eAgent = new EnvelopeFinder(wDim);
      // load information about the World into the EnvAgent
-     EnvelopeWorldEnv envAgent  ;
+     EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim, tX, tY, fileEnvelopes)  ;
      // Load list of states
-     ArrayList<EFState> seqOfStates ;
+     ArrayList<EFState> seqOfStates = loadListOfTargetStates(wDim,numSteps,fileStates);;
 
 
      // Set environment agent and load list of steps into the finder agent
@@ -134,6 +136,49 @@ public class EnvelopeFinderTest {
   
      // Test here the sequence of steps and check the resulting states with the
      // ones in seqOfStates
+     for (int i = 0; i < numSteps; i++) { testMakeSimpleStep(eAgent,seqOfStates.get(i)); }
+  }
+
+    /**
+     * The propouse of this test is to check that the solver is
+     * working correctly regardless of the rest of the program.
+     * Also it was useful during the development to understand better the way
+     * ISolver it works.
+     *
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *                           it prevents from inserting contradictory clauses in the formula.
+     * @throws TimeoutException      needed for solver.isSatisfiable method, its thrown if
+     *                               exceeds the timeout.
+     **/
+  @Test public void testSolver()   throws ContradictionException, TimeoutException {
+      ISolver solver = SolverFactory.newDefault();
+      solver.newVar(2);
+      solver.setTimeout(3600);
+
+      VecInt clause1 = new VecInt();
+      clause1.insertFirst(1);
+      clause1.insertFirst(2);
+      solver.addClause(clause1);
+      Assert.assertTrue(solver.isSatisfiable());
+
+      VecInt clause2 = new VecInt();
+      clause2.insertFirst(-1);
+      clause2.insertFirst(-2);
+      solver.addClause(clause2);
+      Assert.assertTrue(solver.isSatisfiable());
+
+      VecInt clause3 = new VecInt();
+      clause3.insertFirst(-1);
+      clause3.insertFirst(2);
+      solver.addClause(clause3);
+      Assert.assertTrue(solver.isSatisfiable());
+
+      VecInt clause4 = new VecInt();
+      clause4.insertFirst(1);
+      clause4.insertFirst(-2);
+      solver.addClause(clause4);
+
+      Assert.assertFalse(solver.isSatisfiable());
   }
 
   /**
@@ -143,7 +188,55 @@ public class EnvelopeFinderTest {
   @Test public void TWorldTest1()   throws
           IOException,  ContradictionException, TimeoutException {
    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  4, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt"  );
+    testMakeSeqOfSteps(  4, 5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt"  );
   }
+
+    /**
+     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+     *                        4x4 world, Treasure at 3,3 and 5 steps.
+     *
+     * @throws IOException            Signals that an I/O exception of some sort has occurred.
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *                           it prevents from inserting contradictory clauses in the formula.
+     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+     *                                exceeds the timeout.
+     **/
+    @Test public void TWorldTest2()   throws
+            IOException,  ContradictionException, TimeoutException {
+        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+        testMakeSeqOfSteps(  6, 4, 3, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
+    }
+
+    /**
+     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+     *                        4x4 world, Treasure at 3,3 and 5 steps.
+     *
+     * @throws IOException            Signals that an I/O exception of some sort has occurred.
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *                           it prevents from inserting contradictory clauses in the formula.
+     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+     *                                exceeds the timeout.
+     **/
+    @Test public void TWorldTest3()   throws
+            IOException,  ContradictionException, TimeoutException {
+        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+        testMakeSeqOfSteps(  6, 4, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );    }
+
+    /**
+     * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+     *                        4x4 world, Treasure at 3,3 and 5 steps.
+     *
+     * @throws IOException            Signals that an I/O exception of some sort has occurred.
+     * @throws ContradictionException it must be included when adding clauses to a solver,
+     *                           it prevents from inserting contradictory clauses in the formula.
+     * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
+     *                                 exceeds the timeout.
+     **/
+    @Test public void TWorldTest4()   throws
+            IOException,  ContradictionException, TimeoutException {
+        // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+        testMakeSeqOfSteps(  6, 4, 7, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );    }
+
+}
 
 }
