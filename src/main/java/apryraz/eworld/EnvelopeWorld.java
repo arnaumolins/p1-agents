@@ -41,7 +41,7 @@ public static void runStepsSequence( int wDim, int tX, int tY,
                                IOException,  ContradictionException, TimeoutException {
   // Make instances of TreasureFinder agent and environment object classes
    EnvelopeFinder EAgent = new EnvelopeFinder(wDim);
-   EnvelopeWorldEnv EnvAgent = new EnvelopeWorldEnv(wDim, )  ;
+   EnvelopeWorldEnv EnvAgent = new EnvelopeWorldEnv(wDim, tX, tY, fileEnvelopes);
 
   
 

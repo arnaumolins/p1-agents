@@ -2,10 +2,11 @@
 
 package apryraz.eworld;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
-
-
-
+import java.util.Collections;
+import java.util.Scanner;
 
 
 public class EnvelopeWorldEnv {
@@ -14,6 +15,12 @@ public class EnvelopeWorldEnv {
 
 **/
   int  WorldDim;
+
+/**
+ * X,Y position of Treasure and world dimension
+ **/
+  int EnvelopeX, EnvelopeY;
+  ArrayList<String> envelopeLoc = new ArrayList<>();
 
 
 /**
@@ -34,30 +41,30 @@ public class EnvelopeWorldEnv {
      * @param dim         dimension of the world
      * @param tx          X position of Treasure
      * @param ty          Y position of Treasure
-     * @param piratesFile File with list of pirates locations<
+     * @param FileEnvelopes File with list of envelopes locations<
      **/
-    public TreasureWorldEnv(int dim, int tx, int ty, String piratesFile) {
+    public EnvelopeWorldEnv(int dim, int tx, int ty, String FileEnvelopes) {
 
-        TreasureX = tx;
-        TreasureY = ty;
+        EnvelopeX = tx;
+        EnvelopeY = ty;
         WorldDim = dim;
-        loadPiratesLocations(piratesFile);
+        loadEnvelopeLocations(FileEnvelopes);
     }
 
 /**
-*   Load the list of pirates locations
+*   Load the list of envelopes locations
 *  
 *    @param: name of the file that should contain a
 *            set of envelope locations in a single line.
 **/
-  public void loadEnvelopeLocations( String envelopeFile ) {
+  public void loadEnvelopeLocations( String FileEnvelopes) {
       try {
-          File myObj = new File(piratesFile);
+          File myObj = new File(FileEnvelopes);
           Scanner myReader = new Scanner(myObj);
           while (myReader.hasNextLine()) {
               String data = myReader.nextLine();
               String[] pirates = data.split(" ");
-              Collections.addAll(pirateLoc,pirates);
+              Collections.addAll(envelopeLoc,pirates);
           }
           myReader.close();
       } catch (FileNotFoundException e) {
@@ -88,7 +95,7 @@ public class EnvelopeWorldEnv {
            {
              
              
-             ans = new AMessage("movedto",msg.getComp(1),msg.getComp(2)  );
+             ans = new AMessage("movedto",msg.getComp(1),msg.getComp(2), msg.getComp(2));
            }
            else
              ans = new AMessage("notmovedto",msg.getComp(1),msg.getComp(2), "" );
@@ -120,7 +127,7 @@ public class EnvelopeWorldEnv {
     public int isPirateInMyCell(int x, int y) {
         String coord = x + "," + y;
 
-        for (String p: pirateLoc) {
+        for (String p: envelopeLoc) {
             if(p.equals(coord)){return 1;}
         }
         return 0;
@@ -141,27 +148,26 @@ public class EnvelopeWorldEnv {
     return ( x >= 1 && x <= WorldDim && y >= 1 && y <= WorldDim);
   }
 
-    private String IsTreasureUp(int y){
-        if(TreasureY > y){
+  private String IsTreasureUp(int y){
+       if(EnvelopeY > y){
             return "yes";
-        }
-        return  "no";
-    }
+       }
+       return  "no";
+  }
 
-    private String metalSensorReading(int x, int y){
-        if(x == TreasureX && y == TreasureY){
-            return "1";
-        }else if(pitagor(Math.abs(TreasureX-x),Math.abs(TreasureY-y)) == 1){
-            return "2";
-        }else if(pitagor(Math.abs(TreasureX-x),Math.abs(TreasureY-y)) == 2){
-            return "3";
-        }else{
-            return "0";
-        }
-    }
-    public static double pitagor (int x , int y){
-        double c = Math.sqrt((x*x)+(y*y));
-        return Math.floor(c);
-    }
- 
+  private String metalSensorReading(int x, int y){
+       if(x == EnvelopeX && y == EnvelopeY){
+           return "1";
+       }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 1){
+           return "2";
+       }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 2){
+           return "3";
+       }else{
+           return "0";
+       }
+  }
+  public static double pitagor (int x , int y){
+       double c = Math.sqrt((x*x)+(y*y));
+       return Math.floor(c);
+  }
 }

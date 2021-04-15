@@ -228,7 +228,7 @@ public class EnvelopeFinder  {
             return moveTo(nextPosition.x, nextPosition.y);
         } else {
             System.out.println("NO MORE steps to perform at agent!");
-            return (new AMessage("NOMESSAGE","",""));
+            return (new AMessage("NOMESSAGE","","", ""));
         }
     }
 
