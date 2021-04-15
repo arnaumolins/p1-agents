@@ -504,7 +504,9 @@ public class EnvelopeFinder  {
                     VecInt concPast = new VecInt();
                     concPast.insertFirst(-(linealIndexPast));
                     futureToPast.add(concPast);
-                    efstate.set( 2 , 3 , "X" );
+                    efstate.set(2, 3, "X");
+                }
+            }
         }
 
     }
@@ -516,8 +518,7 @@ public class EnvelopeFinder  {
     *  @return returns the solver object where the formula has been stored
     **/
     public ISolver buildGamma() throws UnsupportedEncodingException,
-            FileNotFoundException, IOException, ContradictionException
-    {
+            FileNotFoundException, IOException, ContradictionException {
         int totalNumVariables;
 
         // You must set this variable to the total number of boolean variables
@@ -579,29 +580,39 @@ public class EnvelopeFinder  {
      *      * it prevents from inserting contradictory clauses in the formula.
      */
     private void detectorClauses() throws ContradictionException {
-        for (int k = 1; k < 5; k++) { //Possible values of our detector
+        for (int k = 1; k < 6; k++) { //Possible values of our detector
             for (int i = 1; i <= WorldDim; i++) {
                 for (int j = 1; j <= WorldDim; j++) {
-                    switch (k){
+                    switch (k) {
                         case 1:
-                            if(Detector1Offset == 0){ Detector1Offset = actualLiteral;}
-                            detectorImplications(i,j,0,Detector1Offset);
+                            if (Detector1Offset == 0) {
+                                Detector1Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 0, Detector1Offset);
                             break;
                         case 2:
-                            if(Detector2Offset == 0){ Detector2Offset = actualLiteral;}
-                            detectorImplications(i,j,1,Detector2Offset);
+                            if (Detector2Offset == 0) {
+                                Detector2Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 1, Detector2Offset);
                             break;
                         case 3:
-                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
-                            detectorImplications(i,j,2,Detector3Offset);
+                            if (Detector3Offset == 0) {
+                                Detector3Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 2, Detector3Offset);
                             break;
                         case 4:
-                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
-                            detectorImplications(i,j,3,Detector3Offset);
+                            if (Detector3Offset == 0) {
+                                Detector3Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 3, Detector3Offset);
                             break;
                         case 5:
-                            if(Detector3Offset == 0){ Detector3Offset = actualLiteral;}
-                            detectorImplications(i,j,4,Detector3Offset);
+                            if (Detector3Offset == 0) {
+                                Detector3Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 4, Detector3Offset);
                             break;
                     }
                     actualLiteral++;
@@ -619,6 +630,7 @@ public class EnvelopeFinder  {
      * @throws ContradictionException it must be included when adding clauses to a solver,
      *      * it prevents from inserting contradictory clauses in the formula.
      */
+
     private void detectorImplications(int x, int y, int range, int offset) throws ContradictionException {
         for (int i = 1; i <= WorldDim; i++) {
             for (int j = 1; j <= WorldDim; j++) {
@@ -626,12 +638,13 @@ public class EnvelopeFinder  {
                 else{
                     VecInt implication = new VecInt();
                     implication.insertFirst(-(coordToLineal(x,y,offset)));
-                    implication.insertFirst(-(coordToLineal(i,j,TreasureFutureOffset)));
+                    implication.insertFirst(-(coordToLineal(i,j,EnvelopeFutureOffset)));
                     solver.addClause(implication);
                 }
             }
         }
     }
+
     /**
      *Case0 is a bit different from the other ranges implications because the others just look at a certain distance
      * from the actual coord while case0 says; the treasure it's beyond Math.abs(i,j-x,y)>=3.
@@ -669,7 +682,7 @@ public class EnvelopeFinder  {
             for (int j = y; j >0; j--) {
                 VecInt implication = new VecInt();
                 implication.insertFirst(-(coordToLineal(x, y, envelopeAboveOffset)));
-                implication.insertFirst(-(coordToLineal(i, j, TreasureFutureOffset)));
+                implication.insertFirst(-(coordToLineal(i, j, EnvelopeFutureOffset)));
                 solver.addClause(implication);
             }
         }
@@ -797,7 +810,4 @@ public class EnvelopeFinder  {
         coords[0] = (lineal - 1) / WorldDim + 1;
         return coords;
     }
-
-
-
 }
