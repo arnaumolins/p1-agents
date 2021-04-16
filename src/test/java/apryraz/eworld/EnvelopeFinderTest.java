@@ -109,6 +109,8 @@ public class EnvelopeFinderTest {
   *   but only up to numSteps steps.
   *
   *   @param wDim the dimension of world
+  *   @param tX x coordinate of envelope position
+  *   @param tY y coordinate of envelope position
   *   @param numSteps num of steps to perform
   *   @param fileSteps file name with sequence of steps to perform
   *   @param fileStates file name with sequence of target states, that should
@@ -125,7 +127,7 @@ public class EnvelopeFinderTest {
       // and then test the sequence calling testMakeSimpleStep once for each step.
      EnvelopeFinder eAgent = new EnvelopeFinder(wDim);
      // load information about the World into the EnvAgent
-     EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim, tX, tY, fileEnvelopes)  ;
+     EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim, tX, tY, fileEnvelopes);
      // Load list of states
      ArrayList<EFState> seqOfStates = loadListOfTargetStates(wDim,numSteps,fileStates);;
 
@@ -187,12 +189,12 @@ public class EnvelopeFinderTest {
   **/
   @Test public void TWorldTest1()   throws
           IOException,  ContradictionException, TimeoutException {
-   // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  4, 5, 5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt"  );
+    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+    testMakeSeqOfSteps(5, 2, 2, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt");
   }
 
   /**
-  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "envelopes2.txt"
   *                        4x4 world, Treasure at 3,3 and 5 steps.
   *
   * @throws IOException            Signals that an I/O exception of some sort has occurred.
@@ -204,11 +206,11 @@ public class EnvelopeFinderTest {
   @Test public void TWorldTest2()   throws
         IOException,  ContradictionException, TimeoutException {
     // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  6, 4, 3, 5, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
+    testMakeSeqOfSteps(  5, 2, 3, 7, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
   }
 
   /**
-  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "envelopes3.txt"
   *                        4x4 world, Treasure at 3,3 and 5 steps.
   *
   * @throws IOException            Signals that an I/O exception of some sort has occurred.
@@ -219,10 +221,10 @@ public class EnvelopeFinderTest {
   **/
   @Test public void TWorldTest3()   throws IOException,  ContradictionException, TimeoutException {
     // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  6, 4, 6, 5, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
+    testMakeSeqOfSteps(  7, 5, 6, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
   }
   /**
-  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "pirates1.txt"
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "envelopes4.txt"
   *                        4x4 world, Treasure at 3,3 and 5 steps.
   *
   * @throws IOException            Signals that an I/O exception of some sort has occurred.
@@ -233,6 +235,6 @@ public class EnvelopeFinderTest {
   **/
   @Test public void TWorldTest4()   throws IOException,  ContradictionException, TimeoutException {
     // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-    testMakeSeqOfSteps(  6, 4, 7, 5, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
+    testMakeSeqOfSteps(  7, 4, 1, 12, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
   }
 }
