@@ -35,7 +35,7 @@ public class AMessage {
  *  Show message on screen
  **/
  public void showMessage() {
-     System.out.println( "MESSAGE: "+msg[0]+ " "+ msg[1] + " "+ msg[2]+ " "+msg[3] );
+     System.out.println( "MESSAGE: "+msg[0]+ " "+ msg[1] + " "+ msg[2]+ " "+msg[3]);
  }
 
  /**
@@ -50,3 +50,4 @@ public class AMessage {
  }
 
 }
+

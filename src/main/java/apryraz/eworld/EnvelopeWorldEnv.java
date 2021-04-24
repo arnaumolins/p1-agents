@@ -11,45 +11,22 @@ import java.util.Scanner;
 
 public class EnvelopeWorldEnv {
 /**
-   world dimension
-
-**/
-  int  WorldDim;
-
-/**
- * X,Y position of Treasure and world dimension
+ * X,Y position of envelope and world dimension
  **/
-  int EnvelopeX, EnvelopeY;
+  int EnvelopeX, EnvelopeY, WorldDim;
   ArrayList<String> envelopeLoc = new ArrayList<>();
 
 
-/**
-*  Class constructor
-*
-* @param dim dimension of the world
-* @param envelopeFile File with list of envelopes locations
-**/
-  public EnvelopeWorldEnv( int dim, String envelopeFile ) {
-
-    WorldDim = dim;
-    loadEnvelopeLocations(envelopeFile);
+  /**
+  * Class constructor
+  *
+  * @param dim dimension of the world
+  * @param FileEnvelopes File with list of envelopes locations<
+  **/
+  public EnvelopeWorldEnv(int dim, String FileEnvelopes) {
+      WorldDim = dim;
+      loadEnvelopeLocations(FileEnvelopes);
   }
-
-    /**
-     * Class constructor
-     *
-     * @param dim         dimension of the world
-     * @param tx          X position of Treasure
-     * @param ty          Y position of Treasure
-     * @param FileEnvelopes File with list of envelopes locations<
-     **/
-    public EnvelopeWorldEnv(int dim, int tx, int ty, String FileEnvelopes) {
-
-        EnvelopeX = tx;
-        EnvelopeY = ty;
-        WorldDim = dim;
-        loadEnvelopeLocations(FileEnvelopes);
-    }
 
 /**
 *   Load the list of envelopes locations
@@ -63,12 +40,12 @@ public class EnvelopeWorldEnv {
           Scanner myReader = new Scanner(myObj);
           while (myReader.hasNextLine()) {
               String data = myReader.nextLine();
-              String[] pirates = data.split(" ");
-              Collections.addAll(envelopeLoc,pirates);
+              String[] envelopes = data.split(" ");
+              Collections.addAll(envelopeLoc,envelopes);
           }
           myReader.close();
       } catch (FileNotFoundException e) {
-          System.out.println("Error opening Pirates file");
+          System.out.println("Error opening Envelopes file");
           e.printStackTrace();
       }
   }
@@ -91,13 +68,10 @@ public class EnvelopeWorldEnv {
            int nx = Integer.parseInt( msg.getComp(1) );
            int ny = Integer.parseInt( msg.getComp(2) );
            
-           if (withinLimits(nx,ny))
-           {
-             
-             
-             ans = new AMessage("movedto",msg.getComp(1),msg.getComp(2), msg.getComp(2));
-           }
-           else
+           if (withinLimits(nx,ny)) {
+             int envelope = isEnvelopeInMyCell(nx, ny);
+             ans = new AMessage("movedto",msg.getComp(1),msg.getComp(2), (new Integer(envelope)).toString());
+           } else
              ans = new AMessage("notmovedto",msg.getComp(1),msg.getComp(2), "" );
 
        } else {
@@ -107,30 +81,31 @@ public class EnvelopeWorldEnv {
                String detectorRange = metalSensorReading(nx,ny);
                ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
            }
-           if(msg.getComp(0).equals("treasureup")){
+           if(msg.getComp(0).equals("envelopeup")){
                int ny = Integer.parseInt(msg.getComp(2));
-               String isup = IsTreasureUp(ny);
+               String isup = IsEnvelopeUp(ny);
                ans = new AMessage(isup, msg.getComp(1), msg.getComp(2),"");
            }
-         }
+       }
        return ans;
 
    }
 
     /**
-     * Check if there is a pirate in position (x,y)
+     * Check if there is an envelope in position (x,y)
      *
      * @param x x coordinate of agent position
      * @param y y coordinate of agent position
-     * @return 1  if (x,y) contains a pirate, 0 otherwise
+     * @return 1  if (x,y) contains an envelope, 0 otherwise
      **/
-    public int isPirateInMyCell(int x, int y) {
+    public int isEnvelopeInMyCell(int x, int y) {
         String coord = x + "," + y;
-
         for (String p: envelopeLoc) {
-            if(p.equals(coord)){return 1;}
+            if(p.equals(coord)){
+                return 1;
+            }
         }
-        return 0;
+    return 0;
     }
 
 
@@ -148,7 +123,7 @@ public class EnvelopeWorldEnv {
     return ( x >= 1 && x <= WorldDim && y >= 1 && y <= WorldDim);
   }
 
-  private String IsTreasureUp(int y){
+  private String IsEnvelopeUp(int y){
        if(EnvelopeY > y){
             return "yes";
        }
@@ -157,7 +132,7 @@ public class EnvelopeWorldEnv {
 
   private String metalSensorReading(int x, int y){
        if(x == EnvelopeX && y == EnvelopeY){
-           return "1";
+           return "5";
        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 1){
            return "2";
        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 2){

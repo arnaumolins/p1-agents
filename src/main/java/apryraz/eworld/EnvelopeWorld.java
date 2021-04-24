@@ -14,11 +14,6 @@ import org.sat4j.reader.*;
 
 **/
 public class EnvelopeWorld {
-    /**
-     * X,Y position of Treasure and world dimension
-     **/
-    int TreasureX, TreasureY, WorldDim;
-    ArrayList<String> pirateLoc = new ArrayList<>();
 
 
     /**
@@ -27,8 +22,6 @@ public class EnvelopeWorld {
    runNextStep() of the BarcenasFinder agent.
 
    @param wDim the dimension of world
-   @param tX x coordinate of treasure position
- * @param tY y coordinate of treasure position
    @param numSteps num of steps to perform
    @param fileSteps file name with sequence of steps to perform
    @param fileEnvelopes file name with sequence of steps to perform
@@ -36,12 +29,11 @@ public class EnvelopeWorld {
 **/
 
 
-public static void runStepsSequence( int wDim, int tX, int tY,
-                                    int numSteps, String fileSteps, String fileEnvelopes ) throws
+public static void runStepsSequence( int wDim, int numSteps, String fileSteps, String fileEnvelopes ) throws
                                IOException,  ContradictionException, TimeoutException {
   // Make instances of TreasureFinder agent and environment object classes
    EnvelopeFinder EAgent = new EnvelopeFinder(wDim);
-   EnvelopeWorldEnv EnvAgent = new EnvelopeWorldEnv(wDim, tX, tY, fileEnvelopes);
+   EnvelopeWorldEnv EnvAgent = new EnvelopeWorldEnv(wDim, fileEnvelopes);
 
   
 
@@ -60,25 +52,21 @@ public static void runStepsSequence( int wDim, int tX, int tY,
 /**
 *  This function should load five arguments from the command line:
 *  arg[0] = dimension of the word
-*  arg[1] = x coordinate of treasure position
-*  arg[2] = y coordinate of treasure position
-*  arg[3] = num of steps to perform
-*  arg[4] = file name with sequence of steps to perform
-*  arg[5] = file name with list of envelopes positions
+*  arg[1] = num of steps to perform
+*  arg[2] = file name with sequence of steps to perform
+*  arg[3] = file name with list of envelopes positions
 **/
 public static void main ( String[] args) throws ParseFormatException,
         IOException,  ContradictionException, TimeoutException {
 
-    if (args.length < 5) {
+    if (args.length < 4) {
         System.out.println("You must specify all arguments needed");
     } else {
         int wDim = Integer.parseInt(args[0]);
-        int tX = Integer.parseInt(args[1]);
-        int tY = Integer.parseInt(args[2]);
-        int numSteps = Integer.parseInt(args[3]);
-        String fileSteps = args[4];
-        String filePirates = args[5];
-        runStepsSequence(wDim,tX,tY,numSteps,fileSteps,filePirates);
+        int numSteps = Integer.parseInt(args[1]);
+        String fileSteps = args[2];
+        String fileEnvelopes = args[3];
+        runStepsSequence(wDim,numSteps,fileSteps,fileEnvelopes);
     }
 }
 }
