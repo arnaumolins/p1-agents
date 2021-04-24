@@ -1,3 +1,5 @@
+package apryraz.eworld;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -137,7 +139,7 @@ public class EnvelopeFinderTest {
      for (int i = 0; i < numSteps; i++) { testMakeSimpleStep(eAgent,seqOfStates.get(i)); }
   }
 
-    /**
+    /**esti
      * The propouse of this test is to check that the solver is
      * working correctly regardless of the rest of the program.
      * Also it was useful during the development to understand better the way
@@ -185,7 +187,7 @@ public class EnvelopeFinderTest {
   **/
   @Test public void EFinderTest1()   throws
           IOException,  ContradictionException, TimeoutException {
-    // Example test for 4x4 world , Treasure at 3,3 and 5 steps
+
     testMakeSeqOfSteps(5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt");
   }
 

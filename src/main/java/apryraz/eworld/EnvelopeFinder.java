@@ -313,7 +313,7 @@ public class EnvelopeFinder {
     private void addDetectorEvidenceClauses(int x, int y, String detects) throws ContradictionException{
         System.out.println("Detector returned: " + detects);
         System.out.println("Inserting detector evidence");
-        switch (detects){
+        /*switch (detects){
             case "1":
                 addClause(x,y,+1,Detector1Offset);
                 for (int i = 1; i <= WorldDim; i++) {
@@ -375,7 +375,7 @@ public class EnvelopeFinder {
                     }
                 }
                 break;
-        }
+        }*/
     }
 
     public static double pitagor (int x , int y){

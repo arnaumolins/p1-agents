@@ -133,10 +133,14 @@ public class EnvelopeWorldEnv {
   private String metalSensorReading(int x, int y){
        if(x == EnvelopeX && y == EnvelopeY){
            return "5";
-       }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 1){
-           return "2";
-       }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 2){
+       }else if(Math.abs(EnvelopeX-x) == -1){
            return "3";
+       }else if(Math.abs(EnvelopeX-x) == 1){
+           return "1";
+       }else if(Math.abs(EnvelopeY-y) == -1){
+           return "4";
+       }else if(Math.abs(EnvelopeY-y) == 1){
+           return "2";
        }else{
            return "0";
        }
