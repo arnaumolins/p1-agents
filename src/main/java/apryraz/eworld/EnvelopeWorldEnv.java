@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class EnvelopeWorldEnv {
     /**
-     * X,Y position of Treasure and world dimension
+     * X,Y position of Envelope and world dimension
      **/
     int EnvelopeX, EnvelopeY, WorldDim;
     ArrayList<String> envelopeLoc = new ArrayList<>();
@@ -19,20 +19,19 @@ public class EnvelopeWorldEnv {
     /**
      * Class constructor
      *
-     * @param dim         dimension of the world
+     * @param dim dimension of the world
      * @param envelopesFile File with list of pirates locations<
      **/
     public EnvelopeWorldEnv(int dim, String envelopesFile) {
-
         WorldDim = dim;
         loadEnvelopesLocations(envelopesFile);
     }
 
     /**
-     * Load the list of pirates locations
+     * Load the list of envelopes locations
      *
-     * @param: name of the file that should contain a
-     * set of pirate locations in a single line.
+     * @param envelopesFile name of the file that should contain a
+     * set of envelopes locations in a single line.
      **/
     public void loadEnvelopesLocations(String envelopesFile) {
         try {
@@ -52,7 +51,7 @@ public class EnvelopeWorldEnv {
 
 
     /**
-     * Process a message received by the TFinder agent,
+     * Process a message received by the EFinder agent,
      * by returning an appropriate answer
      * This version only process answers to moveto and detectsat messages
      *
@@ -71,7 +70,7 @@ public class EnvelopeWorldEnv {
                 int envelopes = isEnvelopeInMyCell(nx, ny);
 
                 ans = new AMessage("movedto", msg.getComp(1), msg.getComp(2),
-                        (new Integer(envelopes)).toString());
+                        (Integer.valueOf(envelopes).toString()));
             } else
                 ans = new AMessage("notmovedto", msg.getComp(1), msg.getComp(2), "");
 
@@ -82,22 +81,17 @@ public class EnvelopeWorldEnv {
                 String detectorRange = metalSensorReading(nx,ny);
                 ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
             }
-            if(msg.getComp(0).equals("treasureup")){
-                int ny = Integer.parseInt(msg.getComp(2));
-                String isup = IsEnvelopeUp(ny);
-                ans = new AMessage(isup, msg.getComp(1), msg.getComp(2),"");
-            }
         }
         return ans;
 
     }
 
     /**
-     * Check if there is a pirate in position (x,y)
+     * Check if there is a envelope in position (x,y)
      *
      * @param x x coordinate of agent position
      * @param y y coordinate of agent position
-     * @return 1  if (x,y) contains a pirate, 0 otherwise
+     * @return 1  if (x,y) contains a envelope, 0 otherwise
      **/
     public int isEnvelopeInMyCell(int x, int y) {
         String coord = x + "," + y;
@@ -121,23 +115,20 @@ public class EnvelopeWorldEnv {
         return (x >= 1 && x <= WorldDim && y >= 1 && y <= WorldDim);
     }
 
-    private String IsEnvelopeUp(int y){
-        if(EnvelopeY > y){
-            return "yes";
-        }
-        return  "no";
-    }
 
     private String metalSensorReading(int x, int y){
         if(x == EnvelopeX && y == EnvelopeY){
             return "5";
         }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 1){
-            return "2";
+            return "1";
         }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 2){
+            return "2";
+        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 3){
             return "3";
-        }else{
-            return "0";
+        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 4) {
+            return "4";
         }
+        return null;
     }
     public static double pitagor (int x , int y){
         double c = Math.sqrt((x*x)+(y*y));
