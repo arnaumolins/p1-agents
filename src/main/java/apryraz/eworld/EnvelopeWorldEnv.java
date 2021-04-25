@@ -121,6 +121,12 @@ public class EnvelopeWorldEnv {
         return (x >= 1 && x <= WorldDim && y >= 1 && y <= WorldDim);
     }
 
+    private String IsEnvelopeUp(int y){
+        if(EnvelopeY > y){
+            return "yes";
+        }
+        return  "no";
+    }
 
     private String metalSensorReading(int x, int y){
         if(x == EnvelopeX && y == EnvelopeY){
