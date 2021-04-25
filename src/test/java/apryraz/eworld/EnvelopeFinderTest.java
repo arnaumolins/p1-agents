@@ -1,3 +1,5 @@
+package apryraz.eworld;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -116,14 +118,14 @@ public class EnvelopeFinderTest {
      *   @param fileEnvelopes
      *
      **/
-    public void testMakeSeqOfSteps( int wDim, int tX, int tY, int numSteps, String fileSteps, String fileStates, String fileEnvelopes  )
+    public void testMakeSeqOfSteps( int wDim, int numSteps, String fileSteps, String fileStates, String fileEnvelopes  )
             throws   IOException,  ContradictionException, TimeoutException {
         // You should make TreasureFinder and TreasureWorldEnv objects to  test.
         // Then load sequence of target states, load sequence of steps into the eAgent
         // and then test the sequence calling testMakeSimpleStep once for each step.
         EnvelopeFinder eAgent = new EnvelopeFinder(wDim);
         // load information about the World into the EnvAgent
-        EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim,tX, tY, fileEnvelopes);
+        EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim, fileEnvelopes);
         // Load list of states
         ArrayList<EFState> seqOfStates = loadListOfTargetStates(wDim,numSteps,fileStates);;
 
@@ -186,7 +188,7 @@ public class EnvelopeFinderTest {
     @Test public void EFinderTest1()   throws
             IOException,  ContradictionException, TimeoutException {
         // Example test for 4x4 world , Treasure at 3,3 and 5 steps
-        testMakeSeqOfSteps(5, 2, 2, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt");
+        testMakeSeqOfSteps(5, 5, "tests/steps1.txt", "tests/states1.txt", "tests/envelopes1.txt");
     }
 
     /**
@@ -201,7 +203,7 @@ public class EnvelopeFinderTest {
      **/
     @Test public void EFinderTest2()   throws
             IOException,  ContradictionException, TimeoutException {
-        testMakeSeqOfSteps(  5,3, 2, 7, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
+        testMakeSeqOfSteps(  5, 7, "tests/steps2.txt", "tests/states2.txt", "tests/envelopes2.txt" );
     }
 
     /**
@@ -215,7 +217,7 @@ public class EnvelopeFinderTest {
      *                                exceeds the timeout.
      **/
     @Test public void EFinderTest3()   throws IOException,  ContradictionException, TimeoutException {
-        testMakeSeqOfSteps(  7, 4, 4, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
+        testMakeSeqOfSteps(  7, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
     }
     /**
      * Tests the specific configuration of: "steps4.txt" , "states4.txt", "envelopes4.txt"
@@ -228,6 +230,6 @@ public class EnvelopeFinderTest {
      *                                 exceeds the timeout.
      **/
     @Test public void EFinderTest4()   throws IOException,  ContradictionException, TimeoutException {
-        testMakeSeqOfSteps(  7,  6, 2,  12, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
+        testMakeSeqOfSteps(  7,  12, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
     }
 }

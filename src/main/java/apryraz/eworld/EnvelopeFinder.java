@@ -199,9 +199,6 @@ public class EnvelopeFinder  {
 
           // Next, use Detector sensor to discover new information
           processDetectorSensorAnswer( DetectsAt() );
-          if(envelopeFound == 1){
-              processEnvelopeAnswer(IsEnvelopeLoccation())
-          }
 
           // Perform logical consequence questions for all the positions
           // of the Envelope World
@@ -228,7 +225,7 @@ public class EnvelopeFinder  {
             return moveTo(nextPosition.x, nextPosition.y);
         } else {
             System.out.println("NO MORE steps to perform at agent!");
-            return (new AMessage("NOMESSAGE","",""));
+            return (new AMessage("NOMESSAGE","","",""));
         }
     }
 
@@ -251,7 +248,7 @@ public class EnvelopeFinder  {
 
         msg = new AMessage("moveto", (new Integer(x)).toString(), (new Integer(y)).toString(), "" );
         ans = EnvAgent.acceptMessage( msg );
-        System.out.println("FINDER => moving to : (" + x + "," + y + ")");
+        System.out.println("FINDER => moving to : (" + x + "," + y + ")"+"Envelope found :"+ envelopeFound);
 
         return ans;
     }
@@ -285,10 +282,9 @@ public class EnvelopeFinder  {
         msg = new AMessage( "detectsat", (new Integer(agentX)).toString(),
                                        (new Integer(agentY)).toString(), "" );
         ans = EnvAgent.acceptMessage( msg );
-        System.out.println("FINDER => detecting at : (" + agentX + "," + agentY + ")");
+        System.out.println("FINDER => detecting at : (" + agentX + "," + agentY + ")" + " Envelope found :" + envelopeFound);
         return ans;
     }
-
 
     /**
     *   Process the answer obtained for the query "Detects at (x,y)?"
@@ -304,14 +300,44 @@ public class EnvelopeFinder  {
             IOException, ContradictionException,  TimeoutException
     {
 
+        VecInt ImpClause = new VecInt();
         int x = Integer.parseInt(ans.getComp(1));
         int y = Integer.parseInt(ans.getComp(2));
         String detects = ans.getComp(0);
-
-        addDetectorEvidenceClauses(x,y,detects);
+        if(detects.equals("yes")){
+            for (int i = 1; i <= WorldDim; i++) {
+                for (int j = y; j > 0; j--) {
+                    ImpClause.insertFirst(-(coordToLineal(x,y,Detector5Offset)));
+                    ImpClause.insertFirst(-(coordToLineal(i,j,EnvelopeFutureOffset)));
+                    solver.addClause(ImpClause);
+                }
+            }
+        }else if(detects.equals("1")){
+            for (int i = -1; i <= 1; i++) {
+                    ImpClause.insertFirst(-(coordToLineal(x+1,y+i,Detector1Offset)));
+                    ImpClause.insertFirst(-(coordToLineal(x+1,y+i,EnvelopeFutureOffset)));
+                    solver.addClause(ImpClause);
+            }
+        }else if(detects.equals("2")){
+            for (int i = -1; i <= 1; i++) {
+                ImpClause.insertFirst(-(coordToLineal(x+i,y+1,Detector2Offset)));
+                ImpClause.insertFirst(-(coordToLineal(x+i,y+1,EnvelopeFutureOffset)));
+                solver.addClause(ImpClause);
+            }
+        }else if(detects.equals("3")){
+            for (int i = -1; i <= 1; i++) {
+                ImpClause.insertFirst(-(coordToLineal(x-1,y+i,Detector3Offset)));
+                ImpClause.insertFirst(-(coordToLineal(x-1,y+i,EnvelopeFutureOffset)));
+                solver.addClause(ImpClause);
+            }
+        }else if(detects.equals("4")){
+            for (int i = -1; i <= 1; i++) {
+                ImpClause.insertFirst(-(coordToLineal(x+i,y-1,Detector4Offset)));
+                ImpClause.insertFirst(-(coordToLineal(x+i,y-1,EnvelopeFutureOffset)));
+                solver.addClause(ImpClause);
+            }
+        }
     }
-
-
     
 
     /**
@@ -342,8 +368,7 @@ public class EnvelopeFinder  {
     * any bad functioning in the reasoning process with the formula.
     **/
     public void  performInferenceQuestions() throws  IOException,
-            ContradictionException, TimeoutException
-    {
+            ContradictionException, TimeoutException {
         futureToPast = new ArrayList<>();
         for (int i = 1; i <= WorldDim; i++) {
             for (int j = 1; j <= WorldDim; j++) {
@@ -351,22 +376,22 @@ public class EnvelopeFinder  {
                 // Get the same variable, but in the past subset
                 int linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
 
-        VecInt variablePositive = new VecInt();
-        variablePositive.insertFirst(linealIndex);
+                VecInt variablePositive = new VecInt();
+                variablePositive.insertFirst(linealIndex);
 
-        // Check if Gamma + variablePositive is unsatisfiable:
-        // This is only AN EXAMPLE for a specific position: (2,3)
-        if (!(solver.isSatisfiable(variablePositive))) {
-              // Add conclusion to list, but rewritten with respect to "past" variables
-              VecInt concPast = new VecInt();
-              concPast.insertFirst(-(linealIndexPast));
+                // Check if Gamma + variablePositive is unsatisfiable:
+                // This is only AN EXAMPLE for a specific position: (2,3)
+                if (!(solver.isSatisfiable(variablePositive))) {
+                    // Add conclusion to list, but rewritten with respect to "past" variables
+                    VecInt concPast = new VecInt();
+                    concPast.insertFirst(-(linealIndexPast));
 
-              futureToPast.add(concPast);
-              efstate.set( i , j , "X" );
+                    futureToPast.add(concPast);
+                    efstate.set(i, j, "X");
+                }
+            }
         }
-
     }
-
     /**
     * This function builds the initial logical formula of the agent and stores it
     * into the solver object.
@@ -396,7 +421,6 @@ public class EnvelopeFinder  {
         pastTofutureState(); //Envelope state t-1 to Envelope state t+1
 
         detectorClauses(); //Implications from the metal sensor
-        agentClauses();   //agent implications
 
         notInInitialPos(); //Implicates that the envelope is not in the initial position
 
@@ -404,37 +428,41 @@ public class EnvelopeFinder  {
         return solver;
     }
 
-    /**
-    * We need to add all the clauses for the possible implications a agent may have.
-    *
-    *  @throws ContradictionException it must be included when adding clauses to a solver,
-    *  it prevents from inserting contradictory clauses in the formula.
-    */
-    private void agentClauses() throws ContradictionException {
-        for (int k = 0; k < 4; k++) {
+    private void detectorClauses() throws ContradictionException {
+        for (int k = 0; k < 4; k++) { //Possible values of our detector
             for (int i = 1; i <= WorldDim; i++) {
                 for (int j = 1; j <= WorldDim; j++) {
-                    if (k == 0) {
-                        if (agentAboveOffset == 0) {
-                            agentAboveOffset = actualLiteral;
-                        }
-                        agentAboveImpl(i, j);
-                    } else if (k == 1) {
-                        if (agentBelowOffset == 0) {
-                            agentBelowOffset = actualLiteral;
-                        }
-                        agentBelowImpl(i, j);
-
-                    } else if (k == 2) {
-                        if (agentRightOffset == 0) {
-                            agentRightOffset = actualLiteral;
-                        }
-                        agentRightImpl(i, j);
-                    } else if (k == 3) {
-                        if (agentLeftOffset == 0) {
-                            agentLeftOffset = actualLiteral;
-                        }
-                        agentLeftImpl(i, j);
+                    switch (k) {
+                        case 1:
+                            if (Detector1Offset == 0) {
+                                Detector1Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 0, Detector1Offset);
+                            break;
+                        case 2:
+                            if (Detector2Offset == 0) {
+                                Detector2Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 1, Detector2Offset);
+                            break;
+                        case 3:
+                            if (Detector3Offset == 0) {
+                                Detector3Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 2, Detector3Offset);
+                            break;
+                        case 4:
+                            if (Detector4Offset == 0) {
+                                Detector4Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 3, Detector4Offset);
+                            break;
+                        case 5:
+                            if (Detector5Offset == 0) {
+                                Detector5Offset = actualLiteral;
+                            }
+                            detectorImplications(i, j, 4, Detector5Offset);
+                            break;
                     }
                     actualLiteral++;
                 }
@@ -442,6 +470,19 @@ public class EnvelopeFinder  {
         }
     }
 
+    private void detectorImplications(int x, int y, int range, int offset) throws ContradictionException {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = 1; j <= WorldDim; j++) {
+                if(Math.abs(i-x)==range || Math.abs(j-y)==range){}
+                else{
+                    VecInt implication = new VecInt();
+                    implication.insertFirst(-(coordToLineal(x,y,offset)));
+                    implication.insertFirst(-(coordToLineal(i,j,EnvelopeFutureOffset)));
+                    solver.addClause(implication);
+                }
+            }
+        }
+    }
     /**
      * It models the information using solver's vector and adds it to the solver.
      *
@@ -453,17 +494,6 @@ public class EnvelopeFinder  {
      * @throws ContradictionException it must be included when adding clauses to a solver,
      * it prevents from inserting contradictory clauses in the formula.
      */
-    private void addClause(int x, int y, int sign, int offset) throws ContradictionException {
-        int lc;
-        VecInt evidence = new VecInt();
-        if(sign == -1){
-            lc = -(coordToLineal(x,y,offset));
-        }else{
-            lc = coordToLineal(x,y,offset);
-        }
-        evidence.insertFirst(lc);
-        solver.addClause(evidence);
-    }
 
 
     /**
