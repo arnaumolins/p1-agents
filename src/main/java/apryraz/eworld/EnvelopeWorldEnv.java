@@ -78,8 +78,9 @@ public class EnvelopeWorldEnv {
             if(msg.getComp(0).equals("detectsat")){
                 int nx = Integer.parseInt(msg.getComp(1));
                 int ny = Integer.parseInt(msg.getComp(2));
-                String detectorRange = metalSensorReading(nx,ny);
-                ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
+                String detectorRange = isEnvelopeYesOrNo(nx,ny);
+                String sensorActive = metalSensorReading(nx,ny);
+                ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),sensorActive);
             }
         }
         return ans;
@@ -102,6 +103,13 @@ public class EnvelopeWorldEnv {
         return 0;
     }
 
+    public String isEnvelopeYesOrNo(int x, int y){
+        if((Math.abs(EnvelopeX-x) <= 1 && Math.abs(EnvelopeY-y) <= 1) || (EnvelopeY-y == 0 && EnvelopeX == 0)){
+            return "yes";
+        }else{
+            return "no";
+        }
+    }
 
     /**
      * Check if position x,y is within the limits of the
@@ -119,20 +127,17 @@ public class EnvelopeWorldEnv {
     private String metalSensorReading(int x, int y){
         if(x == EnvelopeX && y == EnvelopeY){
             return "5";
-        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 1){
+        }else if(EnvelopeX-x == 1){
             return "1";
-        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 2){
+        }else if(EnvelopeY-y == 1){
             return "2";
-        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 3){
+        }else if(EnvelopeX-x == -1){
             return "3";
-        }else if(pitagor(Math.abs(EnvelopeX-x),Math.abs(EnvelopeY-y)) == 4) {
+        }else if(EnvelopeY-y == -1) {
             return "4";
         }
-        return null;
+        return "0";
     }
-    public static double pitagor (int x , int y){
-        double c = Math.sqrt((x*x)+(y*y));
-        return Math.floor(c);
-    }
+
 
 }
