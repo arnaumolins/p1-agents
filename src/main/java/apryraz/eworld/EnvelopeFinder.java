@@ -257,8 +257,7 @@ public class EnvelopeFinder {
         if (moveans.getComp(0).equals("movedto")) {
             agentX = Integer.parseInt(moveans.getComp(1));
             agentY = Integer.parseInt(moveans.getComp(2));
-            envelopeFound = Integer.parseInt(moveans.getComp(3));
-            System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")" + " Envelope found : " + envelopeFound);
+            System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")");
         }
     }
 
@@ -272,8 +271,7 @@ public class EnvelopeFinder {
         AMessage msg, ans;
 
         msg = new AMessage("detectsat", (Integer.valueOf(agentX).toString()),
-                (Integer.valueOf(agentY).toString()), "");
-        ans = EnvAgent.acceptMessage(msg);
+                (Integer.valueOf(agentY).toString()), "");        ans = EnvAgent.acceptMessage(msg);
         System.out.println("FINDER => detecting at : (" + agentX + "," + agentY + ")");
         return ans;
     }
@@ -291,114 +289,31 @@ public class EnvelopeFinder {
 
         int x = Integer.parseInt(ans.getComp(1));
         int y = Integer.parseInt(ans.getComp(2));
-        int sensor = Integer.parseInt(ans.getComp(3));
-        String detector = ans.getComp(0);
-        if(detector.equals("yes")){
-            processYes(x, y, sensor);
+        String[] detector = ans.getComp(0).split(",");
+        Boolean[] sensorValues = {false,false,false,false,false};
+        for(int i = 0; i < detector.length; i++) {
+            if (detector[i].equals("1")) {
+                sensorValues[0] = true;
+            } else if (detector.equals("2")) {
+                sensorValues[1] = true;
+            } else if (detector.equals("3")) {
+                sensorValues[2] = true;
+            } else if (detector.equals("4")) {
+                sensorValues[3] = true;
+            } else if (detector.equals("5")) {
+                sensorValues[4] = true;
+            }
         }
-        if(detector.equals("no")){
-            processNo(x,y,sensor);
-        }
-    }
-
-    /**
-     * Process the yes answer obtained for the senor
-     * by adding the appropriate evidence clause to the formula
-     *
-     * @param x horizontal coordinate of the movement to perform
-     * @param y vertical coordinate of the movement to perform
-     * @param sensor indicates the sensor number we receive
-     **/
-
-    public void processYes(int x, int y, int sensor ) throws ContradictionException,TimeoutException, IOException {
-        VecInt c = new VecInt();
-        Detector1Offset = 1;
-        Detector2Offset = WorldLinealDim + 1;
-        Detector3Offset = WorldLinealDim * 2 + 1;
-        Detector4Offset = WorldLinealDim * 3 + 1;
-        Detector5Offset = WorldLinealDim * 4 + 1;
-        EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        switch (sensor) {
-            case 1:
-                int linealIndexSensor1 = coordToLineal(x, y, Detector1Offset);
-                c.insertFirst(linealIndexSensor1);
-                solver.addClause(c);
-                break;
-            case 2:
-                int linealIndexSensor2 = coordToLineal(x, y, Detector2Offset);
-                c.insertFirst(linealIndexSensor2);
-                solver.addClause(c);
-                break;
-            case 3:
-                int linealIndexSensor3 = coordToLineal(x, y, Detector3Offset);
-                c.insertFirst(linealIndexSensor3);
-                solver.addClause(c);
-                break;
-            case 4:
-                int linealIndexSensor4 = coordToLineal(x, y, Detector4Offset);
-                c.insertFirst(linealIndexSensor4);
-                solver.addClause(c);
-                break;
-            case 5:
-                int linealIndexSensor5 = coordToLineal(x, y, Detector5Offset);
-                c.insertFirst(linealIndexSensor5);
-                solver.addClause(c);
-                break;
-
+        for(int i = 0; i < sensorValues.length; i++) {
+            VecInt clause = new VecInt();
+            if(sensorValues[i] == true){
+                clause.push(coordToLineal(x,y, Detector1Offset) + (i));
+            }else{
+                clause.push(-1*(coordToLineal(x,y, Detector1Offset) + (i)));
+            }
+            solver.addClause(clause);
         }
     }
-
-    /**
-     * Process the no answer obtained for the senor
-     * by adding the appropriate evidence clause to the formula
-     *
-     * @param x horizontal coordinate of the movement to perform
-     * @param y vertical coordinate of the movement to perform
-     * @param sensor indicates the sensor number we receive
-     *
-     * @throws IOException            when opening states or steps file.
-     * @throws ContradictionException if inserting contradictory information to solver.
-     * @throws TimeoutException       if solver's isSatisfiable operation spends more
-     * 	                                 time computing than a certain timeout.
-     **/
-    public void processNo(int x, int y, int sensor ) throws ContradictionException,TimeoutException, IOException {
-        VecInt c = new VecInt();
-        Detector1Offset = 1;
-        Detector2Offset = WorldLinealDim + 1;
-        Detector3Offset = WorldLinealDim * 2 + 1;
-        Detector4Offset = WorldLinealDim * 3 + 1;
-        Detector5Offset = WorldLinealDim * 4 + 1;
-        EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        switch (sensor) {
-            case 1:
-                int linealIndexSensor1 = coordToLineal(x, y, Detector1Offset);
-                c.insertFirst(-(linealIndexSensor1));
-                solver.addClause(c);
-                break;
-            case 2:
-                int linealIndexSensor2 = coordToLineal(x, y, Detector2Offset);
-                c.insertFirst(-(linealIndexSensor2));
-                solver.addClause(c);
-                break;
-            case 3:
-                int linealIndexSensor3 = coordToLineal(x, y, Detector3Offset);
-                c.insertFirst(-(linealIndexSensor3));
-                solver.addClause(c);
-                break;
-            case 4:
-                int linealIndexSensor4 = coordToLineal(x, y, Detector4Offset);
-                c.insertFirst(-(linealIndexSensor4));
-                solver.addClause(c);
-                break;
-            case 5:
-                int linealIndexSensor5 = coordToLineal(x, y, Detector5Offset);
-                c.insertFirst(-(linealIndexSensor5));
-                solver.addClause(c);
-                break;
-
-        }
-    }
-
 
 
     /**
@@ -435,7 +350,7 @@ public class EnvelopeFinder {
      * @throws IOException            when opening states or steps file.
      * @throws ContradictionException if inserting contradictory information to solver.
      * @throws TimeoutException       if solver's isSatisfiable operation spends more
-     * 	                                 time computing than a certain timeout.                      exceeds the timeout.
+     * 	                                 time computing than a certain timeout.
      **/
     public void performInferenceQuestions() throws TimeoutException, IOException, ContradictionException {
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
@@ -455,14 +370,6 @@ public class EnvelopeFinder {
                     futureToPast.add(past);
                     past.clear();
                     efstate.set(i, j, "X");
-                }
-                future.clear();
-                future.insertFirst(-(linealIndex));
-                if (!(solver.isSatisfiable(future))) {
-                    past.insertFirst(linealIndexPast);
-                    futureToPast.add(past);
-                    past.clear();
-                    efstate.set(i, j, "E");
                 }
                 future.clear();
             }
@@ -518,19 +425,18 @@ public class EnvelopeFinder {
      **/
 
     public void createGoodClauses() throws ContradictionException {
-        VecInt c = new VecInt();
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexPast = 0;
         int linealIndex = 0;
         for (int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
+                VecInt c = new VecInt();
                 linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
                 linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
-                c.insertFirst(linealIndexPast);
+                c.insertFirst(-(linealIndexPast));
                 c.insertFirst(-(linealIndex));
                 solver.addClause(c);
-                c.clear();
             }
         }
     }
@@ -573,8 +479,6 @@ public class EnvelopeFinder {
      *
      **/
     public void createSensor1() throws ContradictionException{
-        VecInt badClause = new VecInt();
-        VecInt goodClause = new VecInt();
         Detector1Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor= 0;
@@ -583,29 +487,25 @@ public class EnvelopeFinder {
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
+                VecInt badClause = new VecInt();
                 linealIndexSensor = coordToLineal(i, j, Detector1Offset);
-                goodClause.insertFirst(-(linealIndexSensor));
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex1));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
                 if(i + 1 <= WorldDim){
                     linealIndex2 = coordToLineal(i + 1, j, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex2));
                     solver.addClause(badClause);
-                    badClause.clear();
-                    goodClause.insertFirst(linealIndex2);
                 }
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     linealIndex3 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex3));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
             }
         }
@@ -621,9 +521,7 @@ public class EnvelopeFinder {
      *
      **/
     public void createSensor2() throws ContradictionException{
-        VecInt badClause = new VecInt();
-        VecInt goodClause = new VecInt();
-        Detector1Offset = 1;
+        Detector2Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor= 0;
         int linealIndex1 = 0;
@@ -631,29 +529,25 @@ public class EnvelopeFinder {
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector1Offset);
-                goodClause.insertFirst(-(linealIndexSensor));
+                VecInt badClause = new VecInt();
+                linealIndexSensor = coordToLineal(i, j, Detector2Offset);
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     linealIndex1 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex1));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
                 if(i + 1 <= WorldDim){
                     linealIndex2 = coordToLineal(i , j + 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex2));
                     solver.addClause(badClause);
-                    badClause.clear();
-                    goodClause.insertFirst(linealIndex2);
                 }
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     linealIndex3 = coordToLineal(i - 1, j + 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex3));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
             }
         }
@@ -668,9 +562,7 @@ public class EnvelopeFinder {
      *
      **/
     public void createSensor3() throws ContradictionException{
-        VecInt badClause = new VecInt();
-        VecInt goodClause = new VecInt();
-        Detector1Offset = 1;
+        Detector3Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor= 0;
         int linealIndex1 = 0;
@@ -678,29 +570,25 @@ public class EnvelopeFinder {
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector1Offset);
-                goodClause.insertFirst(-(linealIndexSensor));
+                VecInt badClause = new VecInt();
+                linealIndexSensor = coordToLineal(i, j, Detector3Offset);
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     linealIndex1 = coordToLineal(i - 1, j - 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex1));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
                 if(i + 1 <= WorldDim){
                     linealIndex2 = coordToLineal(i - 1, j, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex2));
                     solver.addClause(badClause);
-                    badClause.clear();
-                    goodClause.insertFirst(linealIndex2);
                 }
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     linealIndex3 = coordToLineal(i - 1, j + 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex3));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
             }
         }
@@ -715,9 +603,7 @@ public class EnvelopeFinder {
      *
      **/
     public void createSensor4() throws ContradictionException{
-        VecInt badClause = new VecInt();
-        VecInt goodClause = new VecInt();
-        Detector1Offset = 1;
+        Detector4Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor= 0;
         int linealIndex1 = 0;
@@ -725,29 +611,25 @@ public class EnvelopeFinder {
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector1Offset);
-                goodClause.insertFirst(-(linealIndexSensor));
+                VecInt badClause = new VecInt();
+                linealIndexSensor = coordToLineal(i, j, Detector4Offset);
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex1));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
                 if(i + 1 <= WorldDim){
                     linealIndex2 = coordToLineal(i, j - 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex2));
                     solver.addClause(badClause);
-                    badClause.clear();
-                    goodClause.insertFirst(linealIndex2);
                 }
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     linealIndex3 = coordToLineal(i - 1, j - 1, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex3));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
             }
         }
@@ -763,22 +645,19 @@ public class EnvelopeFinder {
      *
      **/
     public void createSensor5() throws ContradictionException{
-        VecInt badClause = new VecInt();
-        VecInt goodClause = new VecInt();
-        Detector1Offset = 1;
+        Detector5Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor= 0;
         int linealIndex1 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector1Offset);
-                goodClause.insertFirst(-(linealIndexSensor));
-                if(i + 1 <= WorldDim && j - 1 > 0){
+                VecInt badClause = new VecInt();
+                linealIndexSensor = coordToLineal(i, j, Detector5Offset);
+                if(i <= WorldDim && j > 0){
                     linealIndex1 = coordToLineal(i, j, EnvelopeFutureOffset);
-                    badClause.insertFirst(linealIndexSensor);
+                    badClause.insertFirst(-(linealIndexSensor));
                     badClause.insertFirst(-(linealIndex1));
                     solver.addClause(badClause);
-                    badClause.clear();
                 }
             }
         }

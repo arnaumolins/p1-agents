@@ -13,7 +13,7 @@ public class EnvelopeWorldEnv {
      * X,Y position of Envelope and world dimension
      **/
     int EnvelopeX, EnvelopeY, WorldDim;
-    ArrayList<String> envelopeLoc = new ArrayList<>();
+    ArrayList<Position> envelopeLoc = new ArrayList<>();
 
 
     /**
@@ -40,7 +40,11 @@ public class EnvelopeWorldEnv {
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 String[] envelopes = data.split(" ");
-                Collections.addAll(envelopeLoc,envelopes);
+                for(int i = 0; i< envelopes.length; i ++) {
+                    String[] cord = envelopes[i].split(",");
+                    Position envelopePosition = new Position(Integer.parseInt(cord[0]), Integer.parseInt(cord[1]));
+                    envelopeLoc.add(envelopePosition);
+                }
             }
             myReader.close();
         } catch (FileNotFoundException e) {
@@ -67,7 +71,7 @@ public class EnvelopeWorldEnv {
             int ny = Integer.parseInt(msg.getComp(2));
 
             if (withinLimits(nx, ny)) {
-                int envelopes = isEnvelopeInMyCell(nx, ny);
+                int envelopes = 0;
 
                 ans = new AMessage("movedto", msg.getComp(1), msg.getComp(2),
                         (Integer.valueOf(envelopes).toString()));
@@ -78,37 +82,12 @@ public class EnvelopeWorldEnv {
             if(msg.getComp(0).equals("detectsat")){
                 int nx = Integer.parseInt(msg.getComp(1));
                 int ny = Integer.parseInt(msg.getComp(2));
-                String detectorRange = isEnvelopeYesOrNo(nx,ny);
-                String sensorActive = metalSensorReading(nx,ny);
-                ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),sensorActive);
+                String detectorRange = metalSensorReading(nx,ny);
+                ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
             }
         }
         return ans;
 
-    }
-
-    /**
-     * Check if there is a envelope in position (x,y)
-     *
-     * @param x x coordinate of agent position
-     * @param y y coordinate of agent position
-     * @return 1  if (x,y) contains a envelope, 0 otherwise
-     **/
-    public int isEnvelopeInMyCell(int x, int y) {
-        String coord = x + "," + y;
-
-        for (String p: envelopeLoc) {
-            if(p.equals(coord)){return 1;}
-        }
-        return 0;
-    }
-
-    public String isEnvelopeYesOrNo(int x, int y){
-        if((Math.abs(EnvelopeX-x) <= 1 && Math.abs(EnvelopeY-y) <= 1) || (EnvelopeY-y == 0 && EnvelopeX == 0)){
-            return "yes";
-        }else{
-            return "no";
-        }
     }
 
     /**
@@ -125,18 +104,23 @@ public class EnvelopeWorldEnv {
 
 
     private String metalSensorReading(int x, int y){
-        if(x == EnvelopeX && y == EnvelopeY){
-            return "5";
-        }else if(EnvelopeX-x == 1){
-            return "1";
-        }else if(EnvelopeY-y == 1){
-            return "2";
-        }else if(EnvelopeX-x == -1){
-            return "3";
-        }else if(EnvelopeY-y == -1) {
-            return "4";
+        String sensorsActive = "";
+        for(int i = 1; i <= 5; i++) {
+            for (Position position : envelopeLoc) {
+                if((i == 1 && position.x - x == 1 && Math.abs(position.y - y) <= 1 || (x + 1 > WorldDim)&& i ==1)){
+                    sensorsActive += "1,";
+                }else if((i == 2 && Math.abs(position.x - x) <= 1 && position.y - y == 1 || (y + 1 > WorldDim) && i ==2)){
+                    sensorsActive += "2,";
+                }else if((i == 3 && position.x - x == -1 && Math.abs(position.y - y) <= 1 || (x - 1 <= 0) && i ==3)){
+                    sensorsActive += "3,";
+                }else if((i == 4 && Math.abs(position.x - x) <= 1 && position.y - y == -1 || (y - 1 <= 0) && i == 4)){
+                    sensorsActive += "4,";
+                }else if(i == 5 && position.x == x && position.y == y){
+                    sensorsActive += "5,";
+                }
+            }
         }
-        return "0";
+        return sensorsActive;
     }
 
 
