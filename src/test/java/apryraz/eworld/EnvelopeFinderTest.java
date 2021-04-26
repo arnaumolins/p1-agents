@@ -40,8 +40,9 @@ public class EnvelopeFinderTest {
                                    EFState targetState )  throws
                                            IOException,  ContradictionException, TimeoutException {
     // Check (assert) whether the resulting state is equal to
-    //  the targetState after performing action runNextStep with bAgent
+    //  the targetState after performing action runNextStep with eAgent
       eAgent.runNextStep();
+      assertEquals(eAgent.getState(), targetState);
   }
 
 
