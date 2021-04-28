@@ -366,8 +366,8 @@ public class EnvelopeFinder {
     public void performInferenceQuestions() throws TimeoutException, IOException, ContradictionException {
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        for (int i = 1; i <= WorldDim; i++) {
-            for (int j = 1; j <= WorldDim; j++) {
+        for (int i = 1; i <= 3; i++) {
+            for (int j = 1; j <= 3; j++) {
                 VecInt future = new VecInt();
                 int linealIndexPast = coordToLineal(i, j,EnvelopePastOffset);
                 int linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
@@ -483,8 +483,8 @@ public class EnvelopeFinder {
         Detector1Offset = 1;
         int linealIndexSensor = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        for(int i = 1; i <= this.WorldLinealDim; i++) {
-            for (int j = 1; j <= this.WorldDim; j++) {
+        for(int i = 1; i <= 3; i++) {
+            for (int j = 1; j <= 3; j++) {
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     int linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
@@ -527,8 +527,8 @@ public class EnvelopeFinder {
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
-        for(int i = 1; i <= this.WorldDim; i++) {
-            for (int j = 1; j <= this.WorldDim; j++) {
+        for(int i = 1; i <= 3; i++) {
+            for (int j = 1; j <= 3; j++) {
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
@@ -572,8 +572,8 @@ public class EnvelopeFinder {
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
-        for(int i = 1; i <= this.WorldDim; i++) {
-            for (int j = 1; j <= this.WorldDim; j++) {
+        for(int i = 1; i <= 3; i++) {
+            for (int j = 1; j <= 3; j++) {
                 if(i - 1 > 0 && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i - 1, j - 1, EnvelopeFutureOffset);
@@ -620,8 +620,8 @@ public class EnvelopeFinder {
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
-        for(int i = 1; i <= this.WorldDim; i++) {
-            for (int j = 1; j <= this.WorldDim; j++) {
+        for(int i = 1; i <= 3; i++) {
+            for (int j = 1; j <= 3; j++) {
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
@@ -652,6 +652,7 @@ public class EnvelopeFinder {
     }
 
 
+
     /**
      * This function should manage the sensor reading 5 and their clauses and limits.
      *
@@ -664,7 +665,7 @@ public class EnvelopeFinder {
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         int linealIndexSensor = 0;
         int linealIndex1 = 0;
-        for (int i = 0; i <= this.WorldLinealDim; i++) {
+        for (int i = 0; i <= this.WorldDim; i++) {
             VecInt badClause = new VecInt();
             linealIndexSensor = 5 * (i + 1);
             linealIndex1 = i + EnvelopeFutureOffset;
