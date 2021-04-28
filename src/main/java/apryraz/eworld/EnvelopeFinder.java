@@ -323,9 +323,9 @@ public class EnvelopeFinder {
         for(int i = 1; i <= sensorValues.length; i++) {
             VecInt clause = new VecInt();
             if(sensorValues[i-1] == true){
-                clause.push(((y-1)*25)+i+(x-1)*5);
+                clause.push(((y-1)*(WorldLinealDim))+i+(x-1)*5);
             }else{
-                clause.push(-1*((y-1)*25+i+(x-1)*5));
+                clause.push(-1*((y-1)*(WorldLinealDim)+i+(x-1)*5));
             }
             solver.addClause(clause);
         }
@@ -367,8 +367,8 @@ public class EnvelopeFinder {
     public void performInferenceQuestions() throws TimeoutException, IOException, ContradictionException {
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        for (int i = 1; i <= 3; i++) {
-            for (int j = 1; j <= 3; j++) {
+        for (int i = 1; i <= WorldDim; i++) {
+            for (int j = 1; j <= WorldDim; j++) {
                 VecInt future = new VecInt();
                 int linealIndexPast = coordToLineal(i, j,EnvelopePastOffset);
                 int linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
