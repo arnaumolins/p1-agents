@@ -414,11 +414,11 @@ public class EnvelopeFinder {
         // This are the functions to add the different sets of clauses of Gamma to the solver object
         createGoodClauses();
         createALOClauses();
-        //createSensor1();
+        createSensor1();
         createSensor2();
         createSensor3();
         createSensor4();
-        //createSensor5();
+        createSensor5();
 
         return solver;
     }
@@ -550,7 +550,9 @@ public class EnvelopeFinder {
                     badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
                 }
-                linealIndexSensor += 2;
+                if(j != WorldDim){
+                    linealIndexSensor += 2;
+                }
             }
         }
 
@@ -641,9 +643,7 @@ public class EnvelopeFinder {
                     badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
                 }
-                if(j == WorldDim){
-                    i += 1;
-                }else {
+                if(j != WorldDim){
                     linealIndexSensor += 4;
                 }
             }
