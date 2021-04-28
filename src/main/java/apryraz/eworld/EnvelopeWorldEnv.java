@@ -1,3 +1,10 @@
+/**
+ * Treball realitzat per:
+ *
+ * Arnau Molins Carbelo 48254845V
+ * Rubén Querol Cervantes 39939067G
+ * Joel Romia Aribau 73210823Y
+ **/
 package apryraz.eworld;
 
 import apryraz.eworld.AMessage;
@@ -10,9 +17,10 @@ import java.util.Scanner;
 
 public class EnvelopeWorldEnv {
     /**
-     * X,Y position of Envelope and world dimension
+     * World dimension
+     * ArrayLst where we will put the positions of the envelopes
      **/
-    int EnvelopeX, EnvelopeY, WorldDim;
+    int WorldDim;
     ArrayList<Position> envelopeLoc = new ArrayList<>();
 
 
@@ -20,7 +28,7 @@ public class EnvelopeWorldEnv {
      * Class constructor
      *
      * @param dim dimension of the world
-     * @param envelopesFile File with list of pirates locations<
+     * @param envelopesFile File with list of envelopes locations
      **/
     public EnvelopeWorldEnv(int dim, String envelopesFile) {
         WorldDim = dim;
@@ -28,7 +36,8 @@ public class EnvelopeWorldEnv {
     }
 
     /**
-     * Load the list of envelopes locations
+     * Load the list of envelopes locations spliting each position in the array by the coma
+     * and adding every envelope position
      *
      * @param envelopesFile name of the file that should contain a
      * set of envelopes locations in a single line.
@@ -82,7 +91,9 @@ public class EnvelopeWorldEnv {
             if(msg.getComp(0).equals("detectsat")){
                 int nx = Integer.parseInt(msg.getComp(1));
                 int ny = Integer.parseInt(msg.getComp(2));
+                //Save the active sensor
                 String detectorRange = metalSensorReading(nx,ny);
+                //Send the message with the active sensor and positions x, y.
                 ans = new AMessage(detectorRange, msg.getComp(1), msg.getComp(2),"");
             }
         }
@@ -103,25 +114,36 @@ public class EnvelopeWorldEnv {
     }
 
 
+    /**
+     * Check for every envelope position the corresponding active sensor
+     * and their limits.
+     *
+     * @param x x coordinate of agent position
+     * @param y y coordinate of agent position
+     * @return the active sensor
+     **/
     private String metalSensorReading(int x, int y){
         String sensorsActive = "";
         for(int i = 1; i <= 5; i++) {
             for (Position position : envelopeLoc) {
-                if((i == 1 && position.x - x == 1 && Math.abs(position.y - y) <= 1 || (x + 1 > WorldDim)&& i ==1)){
+                if((i == 1 && position.x - x == 1 && Math.abs(position.y - y) <= 1 || (x + 1 > WorldDim) && i ==1)){
                     sensorsActive += "1,";
+                    break;
                 }else if((i == 2 && Math.abs(position.x - x) <= 1 && position.y - y == 1 || (y + 1 > WorldDim) && i ==2)){
                     sensorsActive += "2,";
+                    break;
                 }else if((i == 3 && position.x - x == -1 && Math.abs(position.y - y) <= 1 || (x - 1 <= 0) && i ==3)){
                     sensorsActive += "3,";
+                    break;
                 }else if((i == 4 && Math.abs(position.x - x) <= 1 && position.y - y == -1 || (y - 1 <= 0) && i == 4)){
                     sensorsActive += "4,";
+                    break;
                 }else if(i == 5 && position.x == x && position.y == y){
                     sensorsActive += "5,";
+                    break;
                 }
             }
         }
         return sensorsActive;
     }
-
-
 }

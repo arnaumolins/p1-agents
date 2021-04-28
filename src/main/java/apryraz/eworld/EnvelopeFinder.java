@@ -1,3 +1,10 @@
+/**
+ * Treball realitzat per:
+ *
+ * Arnau Molins Carbelo 48254845V
+ * Rubén Querol Cervantes 39939067G
+ * Joel Romia Aribau 73210823Y
+ **/
 package apryraz.eworld;
 
 import java.util.ArrayList;
@@ -43,7 +50,7 @@ public class EnvelopeFinder {
      **/
     int idNextStep, numMovements;
     /**
-     * Array of clauses that represent conclusiones obtained in the last
+     * Array of clauses that represent conclusions obtained in the last
      * call to the inference function, but rewritten using the "past" variables
      **/
     ArrayList<VecInt> futureToPast = new ArrayList<>();
@@ -62,7 +69,7 @@ public class EnvelopeFinder {
      **/
     ISolver solver;
     /**
-     * Agent position in the world and variable to record if there is a agent
+     * Agent position in the world and variable to record if there is a envelope
      * at that current position
      **/
     int agentX, agentY, envelopeFound;
@@ -72,17 +79,19 @@ public class EnvelopeFinder {
     int WorldDim, WorldLinealDim;
 
     /**
-     * This set of variables CAN be use to mark the beginning of different sets
-     * of variables in your propositional formula (but you may have more sets of
-     * variables in your solution).
+     * Here we initialize the global variables we will need
+     * in most of this class methods.
+     *
+     * We have the variables to save the state of each position in the word if there are or not envelope
+     * 5 sensors detectors
      **/
     int EnvelopePastOffset;
     int EnvelopeFutureOffset;
-    int Detector1Offset = 0;
-    int Detector2Offset = 0;
-    int Detector3Offset = 0;
-    int Detector4Offset = 0;
-    int Detector5Offset = 0;
+    int Detector1Offset;
+    int Detector2Offset;
+    int Detector3Offset;
+    int Detector4Offset;
+    int Detector5Offset;
     int actualLiteral;
 
     /**
@@ -155,6 +164,7 @@ public class EnvelopeFinder {
         stepsList = steps.split(" ");
         listOfSteps = new ArrayList<Position>(numSteps);
         for (int i = 0; i < numSteps; i++) {
+            // Split by coma every envelope position and save it
             String[] coords = stepsList[i].split(",");
             listOfSteps.add(new Position(Integer.parseInt(coords[0]), Integer.parseInt(coords[1])));
         }
@@ -173,15 +183,13 @@ public class EnvelopeFinder {
 
     /**
      * Execute the next step in the sequence of steps of the agent, and then
-     * use the agent sensor to get information from the environment. In the
-     * original Envelope World, this would be to use the Smelll Sensor to get
-     * a binary answer, and then to update the current state according to the
-     * result of the logical inferences performed by the agent with its formula.
+     * use the agent sensor to get information from the environment.
+     * For every move we check which sensors are active and their operations in the world.
      *
-     * @throws IOException            when opening states or steps file.
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
      * @throws ContradictionException if inserting contradictory information to solver.
-     * @throws TimeoutException       if solver's isSatisfiable operation spends more
-     * 	                                 time computing than a certain timeout.
+     * @throws TimeoutException if solver's isSatisfiable operation spends more
+     * 	                        time computing than a certain timeout.
      **/
     public void runNextStep() throws
             IOException, ContradictionException, TimeoutException {
@@ -193,12 +201,10 @@ public class EnvelopeFinder {
         // Also, record if a agent was found at that position
         processMoveAnswer(moveToNext());
 
-        // Next, use Detector sensor to discover new information
+        // Detector sensor to discover new information
         processDetectorSensorAnswer(DetectsAt());
-        // If was found at new agent position, ask question and process Answer to discover new information
 
-        // Perform logical consequence questions for all the positions
-        // of the Envelope World
+        // Perform logical consequence questions for all the positions of the Envelope World
         performInferenceQuestions();
         efstate.printState();      // Print the resulting knowledge matrix
     }
@@ -257,7 +263,8 @@ public class EnvelopeFinder {
         if (moveans.getComp(0).equals("movedto")) {
             agentX = Integer.parseInt(moveans.getComp(1));
             agentY = Integer.parseInt(moveans.getComp(2));
-            System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")");
+            envelopeFound = Integer.parseInt(moveans.getComp(3));
+            System.out.println("FINDER => moved to : (" + agentX + "," + agentY + ")" + "Envelope " + envelopeFound);
         }
     }
 
@@ -281,8 +288,16 @@ public class EnvelopeFinder {
      * Process the answer obtained for the query "Detects at (x,y)?"
      * by adding the appropriate evidence clause to the formula
      *
+     * In our case we active the own sensor and added the positive
+     * or negative clause in the solver.
+     *
      * @param ans message obtained to the query "Detects at (x,y)?".
      *            It will a message with three fields: [0,1,2,3] x y
+     *
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
+     * @throws ContradictionException if inserting contradictory information to solver.
+     * @throws TimeoutException if solver's isSatisfiable operation spends more
+     * 	                                 time computing than a certain timeout.
      **/
     public void processDetectorSensorAnswer(AMessage ans) throws
             ContradictionException,TimeoutException, IOException {
@@ -317,14 +332,13 @@ public class EnvelopeFinder {
 
 
     /**
-     * This function should add all the clauses stored in the list
-     * futureToPast to the formula stored in solver.
-     * Use the function addClause( VecInt ) to add each clause to the solver
+     * This function add all the clauses stored in the list futureToPast to the formula stored in solver.
+     * Checking that the list and its positions are not empty
      *
-     * @throws IOException            when opening states or steps file.
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
      * @throws ContradictionException if inserting contradictory information to solver.
-     * @throws TimeoutException       if solver's isSatisfiable operation spends more
-     * 	                                 time computing than a certain timeout.
+     * @throws TimeoutException if solver's isSatisfiable operation spends more
+     * 	                        time computing than a certain timeout.
      **/
     public void addLastFutureClausesToPastClauses() throws ContradictionException, IOException, TimeoutException {
         for(int i = 0; !futureToPast.isEmpty() && i < futureToPast.size(); i++){
@@ -336,37 +350,33 @@ public class EnvelopeFinder {
     }
 
     /**
-     * This function should check, using the future variables related
-     * to possible positions of Treasure, whether it is a logical consequence
-     * that Treasure is NOT at certain positions. This should be checked for all the
-     * positions of the Envelope World.
-     * The logical consequences obtained, should be then stored in the futureToPast list
-     * but using the variables corresponding to the "past" variables of the same positions
-     * <p>
-     * An efficient version of this function should try to not add to the futureToPast
-     * conclusions that were already added in previous steps, although this will not produce
-     * any bad functioning in the reasoning process with the formula.
+     * This function check for all the possible positions of the Envelope World, using the future variables related
+     * to possible positions of Envelope, whether it is a logical consequence
      *
-     * @throws IOException            when opening states or steps file.
+     * The logical consequences obtained are stored in the futureToPast list
+     * but using past variables of the same positions
+     *
+     * If we check a position that there is no envelope we will put a cross in that cell
+     *
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
      * @throws ContradictionException if inserting contradictory information to solver.
-     * @throws TimeoutException       if solver's isSatisfiable operation spends more
-     * 	                                 time computing than a certain timeout.
+     * @throws TimeoutException if solver's isSatisfiable operation spends more
+     * 	                        time computing than a certain timeout.
      **/
     public void performInferenceQuestions() throws TimeoutException, IOException, ContradictionException {
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        VecInt future = new VecInt();
-        VecInt past = new VecInt();
         for (int i = 1; i <= WorldDim; i++) {
             for (int j = 1; j <= WorldDim; j++) {
+                VecInt future = new VecInt();
                 int linealIndexPast = coordToLineal(i, j,EnvelopePastOffset);
                 int linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
                 future.insertFirst(linealIndex);
-
-                //It checks if Γ + positiveVar it is unsatisfiable
-                //Then it adds the conclusion to the list but regarding to variables from the past
+                //It checks if Γ + future it is unsatisfiable
                 if (!(solver.isSatisfiable(future))) {
-                    past.insertFirst(-(linealIndexPast));
+                    VecInt past = new VecInt();
+                    // Adds the conclusion to the list regarding to variables from the past
+                    past.insertFirst(-linealIndexPast);
                     futureToPast.add(past);
                     past.clear();
                     efstate.set(i, j, "X");
@@ -382,32 +392,29 @@ public class EnvelopeFinder {
      *
      * @return returns the solver object where the formula has been stored
      *
-     * @throws IOException            when opening states or steps file.
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
      * @throws ContradictionException if inserting contradictory information to solver.
      * @throws UnsupportedOperationException  if solver's isSatisfiable operation spends more
      * 	                                 time computing than a certain timeout.
-     * @throws FileNotFoundException if we don't found the file.
+     * @throws FileNotFoundException if we don't found the corresponding file.
      **/
     public ISolver buildGamma() throws ContradictionException, UnsupportedOperationException, FileNotFoundException, IOException {
 
         int totalNumVariables;
 
-        // You must set this variable to the total number of boolean variables
-        // in your formula Gamma
-        totalNumVariables = WorldLinealDim*7;
+        // Set the total num of variables
+        totalNumVariables = WorldLinealDim * 7;
         solver = SolverFactory.newDefault();
         solver.setTimeout(3600);
         solver.newVar(totalNumVariables);
         // This variable is used to generate, in a particular sequential order,
-        // the variable indentifiers of all the variables
+        // the variable indentifier of all the variables
         actualLiteral = 1;
 
-        // call here functions to add the differen sets of clauses
-        // of Gamma to the solver object
-
+        // This are the functions to add the different sets of clauses of Gamma to the solver object
         createGoodClauses();
         createALOClauses();
-        createSensor1();
+        //createSensor1();
         createSensor2();
         createSensor3();
         createSensor4();
@@ -417,8 +424,8 @@ public class EnvelopeFinder {
     }
 
     /**
-     * This function should add all the good clauses stored in the list
-     *
+     * This function should add all the consistency clauses stored in the list
+     * with their pertinent clause time.
      *
      * @throws ContradictionException if inserting contradictory information to solver.
      *
@@ -427,15 +434,13 @@ public class EnvelopeFinder {
     public void createGoodClauses() throws ContradictionException {
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexPast = 0;
-        int linealIndex = 0;
         for (int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
                 VecInt c = new VecInt();
-                linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
-                linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
-                c.insertFirst(-(linealIndexPast));
-                c.insertFirst(-(linealIndex));
+                int linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
+                int linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
+                c.insertFirst(-linealIndexPast);
+                c.insertFirst(-linealIndex);
                 solver.addClause(c);
             }
         }
@@ -444,7 +449,6 @@ public class EnvelopeFinder {
     /**
      * This function should add all the ALO clauses in the solver
      * with their pertinent clause time.
-     *
      *
      * @throws ContradictionException if inserting contradictory information to solver.
      *
@@ -455,12 +459,10 @@ public class EnvelopeFinder {
         VecInt future = new VecInt();
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
         EnvelopePastOffset = WorldLinealDim * 5 + 1;
-        int linealIndexPast = 0;
-        int linealIndex = 0;
         for (int i = 1; i <= this.WorldDim; i++){
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
-                linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
+                int linealIndexPast = coordToLineal(i, j, EnvelopePastOffset);
+                int linealIndex = coordToLineal(i, j, EnvelopeFutureOffset);
                 past.insertFirst(linealIndexPast);
                 future.insertFirst(linealIndex);
             }
@@ -472,43 +474,39 @@ public class EnvelopeFinder {
 
 
     /**
-     * This function should manage the sensor reading 1 and their clauses.
-     *
+     * This function should manage the sensor reading 1 and their clauses and limits.
      *
      * @throws ContradictionException if inserting contradictory information to solver.
      *
      **/
     public void createSensor1() throws ContradictionException{
         Detector1Offset = 1;
+        int linealIndexSensor = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexSensor= 0;
-        int linealIndex1 = 0;
-        int linealIndex2 = 0;
-        int linealIndex3 = 0;
-        for(int i = 1; i <= this.WorldDim; i++) {
+        for(int i = 1; i <= this.WorldLinealDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector1Offset);
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     VecInt badClause = new VecInt();
-                    linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
+                    int linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex1));
+                    badClause.insertFirst(-linealIndex1);
                     solver.addClause(badClause);
                 }
                 if(i + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
-                    linealIndex2 = coordToLineal(i + 1, j, EnvelopeFutureOffset);
+                    int linealIndex2 = coordToLineal(i + 1, j, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex2));
+                    badClause.insertFirst(-linealIndex2);
                     solver.addClause(badClause);
                 }
                 if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
-                    linealIndex3 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
+                    int linealIndex3 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex3));
+                    badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
                 }
+                linealIndexSensor += 5;
             }
         }
 
@@ -516,7 +514,7 @@ public class EnvelopeFinder {
 
 
     /**
-     * This function should manage the sensor reading 2 and their clauses.
+     * This function should manage the sensor reading 2 and their clauses and limits.
      *
      *
      * @throws ContradictionException if inserting contradictory information to solver.
@@ -525,41 +523,41 @@ public class EnvelopeFinder {
     public void createSensor2() throws ContradictionException{
         Detector2Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexSensor= 0;
+        int linealIndexSensor= 2;
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector2Offset)+1;
-                if(i + 1 <= WorldDim && j - 1 > 0){
+                if(i + 1 <= WorldDim && j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i + 1, j + 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex1));
+                    badClause.insertFirst(-linealIndex1);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim){
+                if(j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
                     linealIndex2 = coordToLineal(i , j + 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex2));
+                    badClause.insertFirst(-linealIndex2);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim && j + 1 <= WorldDim){
+                if(i - 1 > 0 && j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
                     linealIndex3 = coordToLineal(i - 1, j + 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex3));
+                    badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
                 }
+                linealIndexSensor += 2;
             }
         }
 
     }
 
     /**
-     * This function should manage the sensor reading 3 and their clauses.
+     * This function should manage the sensor reading 3 and their clauses and limits.
      *
      *
      * @throws ContradictionException if inserting contradictory information to solver.
@@ -568,33 +566,37 @@ public class EnvelopeFinder {
     public void createSensor3() throws ContradictionException{
         Detector3Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexSensor= 0;
+        int linealIndexSensor = 3;
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector3Offset)+2;
-                if(i + 1 <= WorldDim && j - 1 > 0){
+                if(i - 1 > 0 && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i - 1, j - 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex1));
+                    badClause.insertFirst(-linealIndex1);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim){
+                if(i - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex2 = coordToLineal(i - 1, j, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex2));
+                    badClause.insertFirst(-linealIndex2);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim && j + 1 <= WorldDim){
+                if(i - 1 > 0 && j + 1 <= WorldDim){
                     VecInt badClause = new VecInt();
                     linealIndex3 = coordToLineal(i - 1, j + 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex3));
+                    badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
+                }
+                if(j == WorldDim){
+                    i += 1;
+                }else {
+                    linealIndexSensor += 3;
                 }
             }
         }
@@ -602,7 +604,7 @@ public class EnvelopeFinder {
     }
 
     /**
-     * This function should manage the sensor reading 4 and their clauses.
+     * This function should manage the sensor reading 4 and their clauses and limits.
      *
      *
      * @throws ContradictionException if inserting contradictory information to solver.
@@ -611,33 +613,38 @@ public class EnvelopeFinder {
     public void createSensor4() throws ContradictionException{
         Detector4Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexSensor= 0;
+        int cont = 0;
+        int linealIndexSensor = 4;
         int linealIndex1 = 0;
         int linealIndex2 = 0;
         int linealIndex3 = 0;
         for(int i = 1; i <= this.WorldDim; i++) {
             for (int j = 1; j <= this.WorldDim; j++) {
-                linealIndexSensor = coordToLineal(i, j, Detector4Offset)+3;
                 if(i + 1 <= WorldDim && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex1 = coordToLineal(i + 1, j - 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex1));
+                    badClause.insertFirst(-linealIndex1);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim){
+                if(j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex2 = coordToLineal(i, j - 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex2));
+                    badClause.insertFirst(-linealIndex2);
                     solver.addClause(badClause);
                 }
-                if(i + 1 <= WorldDim && j + 1 <= WorldDim){
+                if(i - 1 > 0 && j - 1 > 0){
                     VecInt badClause = new VecInt();
                     linealIndex3 = coordToLineal(i - 1, j - 1, EnvelopeFutureOffset);
                     badClause.insertFirst(linealIndexSensor);
-                    badClause.insertFirst(-(linealIndex3));
+                    badClause.insertFirst(-linealIndex3);
                     solver.addClause(badClause);
+                }
+                if(j == WorldDim){
+                    i += 1;
+                }else {
+                    linealIndexSensor += 4;
                 }
             }
         }
@@ -646,32 +653,27 @@ public class EnvelopeFinder {
 
 
     /**
-     * This function should manage the sensor reading 5 and their clauses.
+     * This function should manage the sensor reading 5 and their clauses and limits.
      *
      *
      * @throws ContradictionException if inserting contradictory information to solver.
      *
      **/
-    public void createSensor5() throws ContradictionException{
+    public void createSensor5() throws ContradictionException {
         Detector5Offset = 1;
         EnvelopeFutureOffset = WorldLinealDim * 6 + 1;
-        int linealIndexSensor= 0;
+        int linealIndexSensor = 0;
         int linealIndex1 = 0;
-        for(int i = 1; i <= this.WorldDim; i++) {
-            for (int j = 1; j <= this.WorldDim; j++) {
-                VecInt badClause = new VecInt();
-                linealIndexSensor = coordToLineal(i, j, Detector5Offset)+4;
-                if(linealIndexSensor==5){
-                    System.out.println("HOLA");
-                }
-                linealIndex1 = coordToLineal(i, j, EnvelopeFutureOffset);
-                badClause.insertFirst(linealIndexSensor);
-                badClause.insertFirst(-(linealIndex1));
-                solver.addClause(badClause);
-            }
+        for (int i = 0; i <= this.WorldLinealDim; i++) {
+            VecInt badClause = new VecInt();
+            linealIndexSensor = 5 * (i + 1);
+            linealIndex1 = i + EnvelopeFutureOffset;
+            badClause.insertFirst(linealIndexSensor);
+            badClause.insertFirst(-linealIndex1);
+            solver.addClause(badClause);
         }
-
     }
+
 
     /**
      * Convert a coordinate pair (x,y) to the integer value  t_[x,y]
@@ -687,7 +689,7 @@ public class EnvelopeFinder {
      * @return the integer indentifer of the variable  b_[x,y] in the formula
      **/
     public int coordToLineal(int x, int y, int offset) {
-        return ((x - 1) * WorldDim) + (y - 1) + offset;
+        return ((y - 1) * WorldDim) + (x - 1) + offset;
     }
 
     /**
@@ -703,8 +705,8 @@ public class EnvelopeFinder {
     public int[] linealToCoord(int lineal, int offset) {
         lineal = lineal - offset + 1;
         int[] coords = new int[2];
-        coords[1] = ((lineal - 1) % WorldDim) + 1;
-        coords[0] = (lineal - 1) / WorldDim + 1;
+        coords[0] = ((lineal - 1) % WorldDim) + 1;
+        coords[1] = (lineal - 1) / WorldDim + 1;
         return coords;
     }
 }
