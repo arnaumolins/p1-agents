@@ -1,3 +1,10 @@
+/**
+ * Treball realitzat per:
+ *
+ * Arnau Molins Carbelo 48254845V
+ * Rubén Querol Cervantes 39939067G
+ * Joel Romia Aribau 73210823Y
+ **/
 package apryraz.eworld;
 
 import java.util.ArrayList;
@@ -29,8 +36,8 @@ public class EnvelopeFinderTest {
 
 
  /**
- *  This function should execute the next step of the agent, and the assert
- *  whether the resulting state is equal to the targetState
+ *  This function should execute the next step of the agent, and the assertEqual
+ *  whether the resulting agent state is equal to the targetState
  *
  *  @param eAgent       EnvelopeFinder agent
  *  @param targetState  the state that should be equal to the resulting state of
@@ -39,9 +46,9 @@ public class EnvelopeFinderTest {
   public void testMakeSimpleStep(  EnvelopeFinder eAgent,
                                    EFState targetState )  throws
                                            IOException,  ContradictionException, TimeoutException {
-    // Check (assert) whether the resulting state is equal to
-    //  the targetState after performing action runNextStep with eAgent
+      // Do next step of the agent
       eAgent.runNextStep();
+      // Check (assertEquals) if the resulting state is equal to agent state
       assertEquals(eAgent.getState(), targetState);
   }
 
@@ -89,7 +96,7 @@ public class EnvelopeFinderTest {
 
          // steps = br.readLine();
          for (int s = 0; s < numStates ; s++ ) {
-           listOfStates.add(readTargetStateFromFile(br,wDim));
+            listOfStates.add(readTargetStateFromFile(br,wDim));
             // Read a blank line between states
             row = br.readLine();
          }
@@ -115,46 +122,40 @@ public class EnvelopeFinderTest {
   *   @param fileSteps file name with sequence of steps to perform
   *   @param fileStates file name with sequence of target states, that should
   *                      be the resulting states after each movement in fileSteps
-  *   @param fileEnvelopes
+  *   @param fileEnvelopes file name with sequence of envelopes positions that should appear in the world
   *
+  * @throws IOException  Signals that an I/O exception of some sort has occurred.
+  * @throws ContradictionException if inserting contradictory information to solver.
+  * @throws TimeoutException if running any operation spends more
+  * 	                     time computing than a certain timeout.
   **/
   public void testMakeSeqOfSteps( int wDim, int numSteps, String fileSteps, String fileStates, String fileEnvelopes  )
        throws   IOException,  ContradictionException, TimeoutException {
-      // You should make EnvelopeFinder and EnvelopeWorldEnv objects to  test.
-      // Then load sequence of target states, load sequence of steps into the eAgent
-      // and then test the sequence calling testMakeSimpleStep once for each step.
+     // Load information about the world dimension in the agent
      EnvelopeFinder eAgent = new EnvelopeFinder(wDim);
-     // load information about the World into the EnvAgent
+     // Load information about the World into the envAgent
      EnvelopeWorldEnv envAgent = new EnvelopeWorldEnv(wDim, fileEnvelopes);
      // Load list of states
      ArrayList<EFState> seqOfStates = loadListOfTargetStates(wDim,numSteps,fileStates);;
 
 
-     // Set environment agent and load list of steps into the finder agent
-     eAgent.loadListOfSteps(  numSteps, fileSteps ) ;
-     eAgent.setEnvironment( envAgent );
+     // Load list of steps into the finder agent
+     // Set environment agent
+     eAgent.loadListOfSteps(numSteps, fileSteps);
+     eAgent.setEnvironment(envAgent);
   
-     // Test here the sequence of steps and check the resulting states with the
-     // ones in seqOfStates
+     // For every step in the sequence of steps we check the resulting states with the ones in seqOfStates
      for (int i = 0; i < numSteps; i++) { testMakeSimpleStep(eAgent,seqOfStates.get(i)); }
   }
 
-    /**
-     *   This functions should run the test to check the good execution
-     *   of the programm
-     *
-     *   @param wDim the dimension of world
-     *   @param numSteps num of steps to perform
-     *   @param fileSteps file name with sequence of steps to perform
-     *   @param fileStates file name with sequence of target states, that should
-     *                      be the resulting states after each movement in fileSteps
-     *   @param fileEnvelopes
-     *
-     **/
-
   /**
-  *   This is an example test. You must replicate this method for each different
-  *    test sequence, or use some kind of parametric tests with junit
+  * Tests the specific configuration of: "steps1.txt" , "states1.txt", "envelopes1.txt"
+  * 5x5 world, Envelopes at ((2,2),(4,4)) and 5 steps.
+  *
+  * @throws IOException Signals that an I/O exception of some sort has occurred.
+  * @throws ContradictionException it must be included when adding clauses to a solver,
+  *                           it prevents from inserting contradictory clauses in the formula.
+  * @throws TimeoutException needed for solver.isSatisfiable method, its thrown if exceeds the timeout.
   **/
   @Test public void EFinderTest1()   throws
           IOException,  ContradictionException, TimeoutException {
@@ -164,13 +165,13 @@ public class EnvelopeFinderTest {
 
   /**
   * Tests the specific configuration of: "steps2.txt" , "states2.txt", "envelopes2.txt"
-  *                        5x5 world, Envelope at 3,2 and 7 steps.
+  * 5x5 world, Envelope at ((3,2),(3,4)) and 7 steps.
   *
-  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws IOException Signals that an I/O exception of some sort has occurred.
   * @throws ContradictionException it must be included when adding clauses to a solver,
   *                           it prevents from inserting contradictory clauses in the formula.
-  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-  *                                exceeds the timeout.
+  * @throws TimeoutException needed for solver.isSatisfiable method, its thrown if
+  *                          exceeds the timeout.
   **/
   @Test public void EFinderTest2()   throws
         IOException,  ContradictionException, TimeoutException {
@@ -179,26 +180,26 @@ public class EnvelopeFinderTest {
 
   /**
   * Tests the specific configuration of: "steps3.txt" , "states3.txt", "envelopes3.txt"
-  *                        7x7 world, Envelope at 3,2 and 6 steps.
+  * 7x7 world, Envelope at ((3,2),(4,4),(2,6)) and 6 steps.
   *
-  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws IOException Signals that an I/O exception of some sort has occurred.
   * @throws ContradictionException it must be included when adding clauses to a solver,
   *                           it prevents from inserting contradictory clauses in the formula.
-  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-  *                                exceeds the timeout.
+  * @throws TimeoutException needed for solver.isSatisfiable method, its thrown if
+  *                          exceeds the timeout.
   **/
   @Test public void EFinderTest3()   throws IOException,  ContradictionException, TimeoutException {
     testMakeSeqOfSteps(  7, 6, "tests/steps3.txt", "tests/states3.txt", "tests/envelopes3.txt" );
   }
   /**
   * Tests the specific configuration of: "steps4.txt" , "states4.txt", "envelopes4.txt"
-  *                        7x7 world, Envelope at 4,4 and 12 steps.
+  * 7x7 world, Envelope at ((6,2),(4,4),(2,6)) and 12 steps.
   *
-  * @throws IOException            Signals that an I/O exception of some sort has occurred.
+  * @throws IOException Signals that an I/O exception of some sort has occurred.
   * @throws ContradictionException it must be included when adding clauses to a solver,
   *                           it prevents from inserting contradictory clauses in the formula.
-  * @throws TimeoutException       needed for solver.isSatisfiable method, its thrown if
-  *                                 exceeds the timeout.
+  * @throws TimeoutException needed for solver.isSatisfiable method, its thrown if
+  *                          exceeds the timeout.
   **/
   @Test public void EFinderTest4()   throws IOException,  ContradictionException, TimeoutException {
     testMakeSeqOfSteps(  7,  12, "tests/steps4.txt", "tests/states4.txt", "tests/envelopes4.txt" );
